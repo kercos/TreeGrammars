@@ -1,0 +1,263 @@
+package tsg.corpora;
+
+import settings.*;
+
+import java.io.*;
+import java.util.*;
+
+import tsg.TSNode;
+import util.*;
+import util.file.FileUtil;
+
+
+public class Tiger2 extends ConstCorpus{
+	
+	public static final long serialVersionUID = 0L;
+	public static final String traceTag = "-NONE-";
+	
+	public static String baseTiger = Parameters.corpusPath + "Tiger/";
+	
+	//public static String baseTigerTB = baseTiger + "Tiger_TB/Aug07/";
+	public static String baseTigerTB = baseTiger + "Tiger_TB/Jul03/";
+	public static File TigerTBxml = new File(baseTigerTB + "tiger_release_july03.xml");
+	public static File TigerTBxmlShort = new File(baseTigerTB + "tiger_release_july03_short.xml");
+	public static File TigerTBPennShort = new File(baseTigerTB + "tiger_release_july03_short.mrg");
+	public static File TigerTBPenn = new File(baseTigerTB + "tiger_release_july03.mrg");
+	public static File TigerTBexport = new File(baseTigerTB + "tiger_release_july03.export");
+	
+	public static File TigerTBextractDBPenn = new File(baseTigerTB + "tiger_release_july03.extractTB_Apr08.mrg");
+	
+	
+	public static String baseTigerDB = baseTiger + "Tiger_DB/tigerDB_Apr08/";
+	public static File baseTigerDB_fdsc = new File(baseTigerDB + "fdsc-Apr08/");
+	public static File tigerDBextractHeads =  new File(baseTigerDB + "tigerDB_Apr08_heads.mrg");
+	public static File tigerDBreadable =  new File(baseTigerDB + "tigerDB_readable");
+
+	public static File indexesDBFile = new File(baseTigerDB + "indexes.txt");
+	//indexes = new int[]{8001, 8002, 8003, ...}
+	
+	public static String baseTigerDB_By = baseTiger + "Tiger_DB/TomasByTiger/";
+	public static File  TigerDB_By = new File(baseTigerDB_By + "baseTigerTB_By");
+	
+	
+	
+	// indexes are 1 based
+	static int[] readIndexes() {
+		Scanner scan = FileUtil.getScanner(indexesDBFile);
+		ArrayList<Integer> indexesList = new ArrayList<Integer>(); 
+		while(scan.hasNextLine()) {
+			String line = scan.nextLine();
+			Integer i = Integer.parseInt(line);
+			indexesList.add(i);
+		}
+		System.out.println("Number of indexes: " + indexesList.size());
+		System.out.println(indexesList);
+		return Utility.arrayListIntegerToArray(indexesList);
+	}
+	
+	static ConstCorpus getExtractTBPenn() {
+		int[] indexes = readIndexes();
+		Utility.addToAll(indexes, -3); //8001 --> 7998
+		ConstCorpus corpus = new ConstCorpus(TigerTBPenn, "TigerTB", false);
+		corpus = corpus.returnIndexes(indexes);
+		//corpus.toFile_Complete(TigerTBextractDBPenn, true);
+		return corpus;
+	}
+	
+	
+	
+	static public ConstCorpus annotateHeads() {
+		ConstCorpus tiger = new ConstCorpus(TigerTBextractDBPenn, "TigerDBTB", false);
+		tiger.removeSemanticTags("HD");
+		int wrongAssignment = 0;		
+		PrintWriter dependencyWriter = FileUtil.getPrintWriter(tigerDBreadable);
+		tiger.removeDoubleQuoteTiger();
+		//String[][] wordsIndex =  scanXmlFile(xmlDB);
+		int[] indexes = readIndexes();
+		for(int i =0; i<indexes.length; i++) {
+			int index = indexes[i];
+			File file_i = new File(baseTigerDB_fdsc + "/tiger-db-" + index + ".fdsc");
+			TSNode tree = tiger.treeBank.get(i);
+			//tree.removeHeadAnnotations();
+			//String flatTree = tree.toFlat();
+			//int lengthFlatTree = flatTree.split(" ").length;			
+			String[] dependecyStrings = scanDependencyFile(file_i);
+			int[][] dependency = readDependency(dependecyStrings, tree);
+			//String depSentence = dependecies[0];
+			String[] output = new String[] {""};
+			boolean right = DepConstConverter.assignHeadsFromDependencyTable(tree, dependency, output);
+			if (!right) wrongAssignment++;
+			dependencyWriter.println(tree.collectTerminals().toString());
+			dependencyWriter.println(output[0]);	
+		}
+		System.out.println("Wrong assignments: " + wrongAssignment + "/" + indexes.length);
+		System.out.println(Arrays.toString(indexes));
+		tiger.toFile_Complete(tigerDBextractHeads, true);
+		return tiger;
+	}
+	
+	public static void printTiger() {
+		boolean quotations = false;
+		File inputFile = new File("/home/fsangati/CORPUS/Tiger/Complete/tiger_release_july03.penn");
+		String outputComplete = "/home/fsangati/CORPUS/Tiger/Complete/tiger_Complete";
+		ConstCorpus corpora = new ConstCorpus(inputFile, "TIGER");
+		corpora.removeTraces(traceTag);
+		corpora.toFile_Complete(new File(outputComplete), quotations);
+	}
+	
+	public static int[][] readDependency(String[] dependecyStrings, TSNode tree) {
+		int countDep = 0, countRoot = 0, indexRoot = -1;
+		for(int i=1; i<dependecyStrings.length; i++) {
+			dependecyStrings[i] = dependecyStrings[i].replaceAll("\\)\\)", ")");
+			String dep = dependecyStrings[i];
+			int firstTilde = dep.indexOf('~');
+			int secondTilde = dep.indexOf('~', firstTilde+1);
+			if (secondTilde!=-1) {
+				int comaIndex = dep.lastIndexOf(", ");
+				int closeIndex = dep.lastIndexOf(')');
+				int firstIndex = Integer.parseInt(dep.substring(firstTilde+1, comaIndex).trim());
+				int secondIndex = Integer.parseInt(dep.substring(secondTilde+1, closeIndex).trim());
+				if (firstIndex<500 && secondIndex<500) countDep++;
+			}
+			else if (dep.startsWith("tiger_id") || dep.startsWith("coord_form")) {				
+				int comaIndex = dep.lastIndexOf(", ");
+				int openIndex = dep.indexOf('(');
+				int closeIndex = dep.lastIndexOf(')');
+				int firstIndex = Integer.parseInt(dep.substring(firstTilde+1, comaIndex).trim());
+				if (firstIndex==0) {
+					String realIndex = dep.substring(comaIndex+1, closeIndex).trim();
+					if (dep.startsWith("coord_form")) indexRoot = getConjunctionIndex(tree, realIndex) + 1;												
+					else indexRoot = Integer.parseInt(realIndex);					
+					String root = dep.substring(openIndex+1, firstTilde).trim();
+					countRoot++;
+					for(int j=1; j<dependecyStrings.length; j++) {
+						String replaceFrom = root + "~0,";
+						String replaceTo = root + "~" + indexRoot + ",";
+						dependecyStrings[j] = dependecyStrings[j].replaceAll(replaceFrom, replaceTo);
+					}	
+				}
+			}
+		}
+		if (countRoot>1) {
+			//System.out.println("Problems ROOTS!");
+		}
+		if (countRoot==0) {
+			//System.out.println("NO ROOTS");
+		}
+		int[][] result = new int[countDep][2];
+		int depIndex = 0;
+		for(int i=1; i<dependecyStrings.length; i++) {
+			String dep = dependecyStrings[i];
+			int firstTilde = dep.indexOf('~');
+			int secondTilde = dep.indexOf('~', firstTilde+1);
+			if (secondTilde!=-1) {
+				int comaIndex = dep.lastIndexOf(", ");
+				int closeIndex = dep.lastIndexOf(')');
+				int firstIndex = Integer.parseInt(dep.substring(firstTilde+1, comaIndex).trim());
+				int secondIndex = Integer.parseInt(dep.substring(secondTilde+1, closeIndex).trim());
+				if (firstIndex!=0 && firstIndex<500 && secondIndex<500) {
+					result[depIndex][0] = firstIndex - 1;
+					result[depIndex][1] = secondIndex - 1;
+					depIndex++;
+				}
+			}
+		}
+		return result;
+	}
+	
+	public static int getConjunctionIndex(TSNode tree, String conj) {
+		List<TSNode> list = tree.collectTerminals();
+		int minHight = Integer.MAX_VALUE;
+		int countMinHight = 0;
+		int bestIndex = -1;
+		for(ListIterator<TSNode> i = list.listIterator(); i.hasNext();) {
+			TSNode term = i.next();			
+			if (term.toString(false, false).toLowerCase().equals(conj)) {
+				int termHight = term.hight();				
+				if ( termHight <= minHight ) {
+					if ( termHight == minHight ) countMinHight++;
+					else countMinHight = 1;
+					bestIndex = i.previousIndex();
+					minHight = termHight;					
+				}
+				
+			}
+		}
+		if (countMinHight==0 || countMinHight>1) {
+			System.out.print("");
+		}
+		return bestIndex;
+	}
+	
+	public static String[][] scanXmlFile(File xmlFile) {
+		LinkedList<String> sentenceWords = new LinkedList<String>(); 
+		String[][] result = new String[2000][];
+		int sentenceIndex = 0;
+		try {
+			Scanner scanfdsc = new Scanner(xmlFile, "ISO-8859-1");
+			while ( scanfdsc.hasNextLine()) {	
+				String dependencyLine = scanfdsc.nextLine();
+				dependencyLine = dependencyLine.trim();
+				if (dependencyLine.indexOf("<t id=")==0) {
+					int startIndex = dependencyLine.indexOf("word=")+6;
+					int endIndex = dependencyLine.indexOf("lemma=")-2;
+					String word = dependencyLine.substring(startIndex, endIndex);
+					sentenceWords.add(word);
+					continue;
+				}
+				if (dependencyLine.indexOf("</terminals>")==0) {
+					if (!sentenceWords.isEmpty()) {
+						result[sentenceIndex] = new String[sentenceWords.size()];
+						result[sentenceIndex] = sentenceWords.toArray(result[sentenceIndex]);
+						sentenceIndex++;
+						sentenceWords.clear();
+					}					
+				}					
+			}
+		} catch (IOException e) {FileUtil.handleExceptions(e);}
+		return result;
+	}
+	
+	public static String[] scanDependencyFile(File depFile) {
+		LinkedList<String> sentenceDependency = new LinkedList<String>(); 
+		//the first element is the sentence, the following elements the dependencies  
+		try {
+			Scanner scanfdsc = new Scanner(depFile, "ISO-8859-1");
+			while ( scanfdsc.hasNextLine()) {	
+				String dependencyLine = scanfdsc.nextLine();
+				dependencyLine = dependencyLine.trim();
+				if (dependencyLine.length()==0) continue;
+				if (dependencyLine.indexOf("sentence(")==0) continue;
+				if (dependencyLine.indexOf("id(TiGerDB")==0) continue;	
+				if (dependencyLine.indexOf("structure(")==0) continue;
+				if (dependencyLine.equals(")")) {
+					String[] result = new String[sentenceDependency.size()];
+					result = sentenceDependency.toArray(result);
+					return result;
+				}
+				if (dependencyLine.indexOf("sentence_form(")==0) {
+					int openParenthesis = dependencyLine.indexOf('(');
+					int closeParenthesis = dependencyLine.lastIndexOf(')');
+					dependencyLine = dependencyLine.substring(openParenthesis+1, closeParenthesis-1);
+				}	
+				sentenceDependency.add(dependencyLine);
+			}
+		} catch (IOException e) {FileUtil.handleExceptions(e);}
+		return null;
+	}
+	
+	public static void buildBinaryTiger() {
+		File tigerPennComplete = new File("/home/fsangati/CORPUS/Tiger/Complete/tiger_release_july03_compressed.penn");		
+		ConstCorpus tiger = new ConstCorpus(tigerPennComplete, "TIGER");		
+		tiger.toBinaryFile(new File("/home/fsangati/CORPUS/Tiger/Complete/tiger_binary_complete"));
+	}
+	
+	public static void main(String args[]) {
+		//buildBinaryTiger();
+		//scanDependencyFile();
+		//readIndexes();
+		//getExtractTBPenn();
+		annotateHeads();
+	}
+	
+}

@@ -1,0 +1,100 @@
+ADJP
+-> left NNS QP NN NML $ 
+-> right JJ 
+-> left ADVP VBN VBG AUX AUXG ADJP JJR JJS JJP FW RBR RBS RB NP SBAR DT *
+
+ADVP
+-> right RB RBR RBS FW ADVP CD JJR JJ JJP NP NML JJS NN TO IN *
+
+CONJP
+-> right RB IN *
+
+FRAG
+-> left NP NML VP ADJP PP *
+
+INTJ
+-> left *
+
+LST
+-> right LS : *
+
+NAC
+=> left NN NNS NNP NNPS NP NAC NML EX $ CD QP PRP VBG AUX AUXG JJ JJS JJR JJP ADJP FW *
+
+NP
+=> right NN NNS NX NNP NNPS NML
+=> left NP
+=> right $ ADJP PRN
+=> right CD
+=> right JJR JJ JJS JJP RB QP
+-> right *
+
+NML
+=> right NN NNP NNPS NNS NX NML JJR
+=> left NP
+=> right $ ADJP PRN
+=> right CD
+=> right JJ JJS JJP RB QP
+-> right *
+
+NX
+-> right NP NX
+=> right NNPS NNS NNP NN NML JJR JJP *
+
+JJP
+=> right JJ JJR JJS JJP VBG *
+
+PP
+-> right VBG VBN AUX AUXG RP FW NP SBAR S IN TO *
+
+PRN
+-> left VP NP PP *
+
+PRT
+-> right RP *
+
+QP
+-> left $ NNS NN NML JJ RB CD NCD QP JJR JJS JJP IN DT *
+
+RRC
+-> right VP NP ADVP ADJP PP *
+
+S
+-> left VP S SBAR ADJP UCP NP TO IN *
+
+SBAR
+-> left NN NML
+-> left S SQ SINV SBAR FRAG WHNP WHPP WHADVP WHADJP IN DT *
+
+SBARQ
+-> left SQ S SINV SBARQ FRAG *
+
+SINV
+-> left VBZ VBD VBP VB AUX AUXG VP S SINV ADJP NP NML MD *
+
+SQ
+-> left VBZ VBD VBP VB AUX AUXG VP SQ MD *
+
+UCP
+-> right *
+
+VP
+-> left VBD VBN VBZ VB VBG VBP AUX AUXG VP ADJP NN NNS NP NML MD TO JJ JJP *
+
+WHADJP
+-> left WRB JJ JJP ADJP *
+
+WHADVP
+-> right WRB *
+
+WHNP
+-> left NNS NN WDT WP WP$ WHADJP WHPP WHNP *
+
+WHPP
+-> right IN TO FW *
+
+X
+-> left NN NNP NNPS NNS NX NML JJR JJP *
+
+TOP
+-> left *
