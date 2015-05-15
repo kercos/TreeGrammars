@@ -1,8 +1,10 @@
-package util;
+package kernels.algo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
+
+import util.Pair;
 
 public class AllOrderedCharSubsequencesNew {
 
@@ -269,8 +271,8 @@ public class AllOrderedCharSubsequencesNew {
 	
 	public static void main(String[] args) {
 
-		Character[] a1 = makeNewCharArray(new Character[]{'A','B','B','A','B','B'});		
-		Character[] a2 = makeNewCharArray(new Character[]{'A','B','B'});
+		Character[] a1 = makeNewCharArray(new Character[]{'A','B','C','D','E','F'});		
+		Character[] a2 = makeNewCharArray(new Character[]{'A','B','Z','C','D','F','A','B','C'});
 			
 		AllOrderedCharSubsequencesNew S2 = new AllOrderedCharSubsequencesNew(a1,a2);
 		ArrayList<ArrayList<Pair<Character>>> allS2 = S2.getAllSubsequences();

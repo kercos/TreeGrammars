@@ -1,4 +1,4 @@
-package kernels.parallel;
+package kernels.parallel.ted;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 import util.PrintProgress;
 
-public class CleanTED {
+public class CleanTED_Links {
 	
 	static char[] ignoreChars = new char[]{'<','/'};
 	static {

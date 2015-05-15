@@ -23,13 +23,14 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
+import kernels.algo.CommonSubstring;
+
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 
 import settings.Parameters;
 import util.ArgumentReader;
-import util.CommonSubstring;
 import util.IdentityArrayList;
 import util.PrintProgressPercentage;
 import util.Utility;

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.TreeSet;
 
-import util.StringsAlignment;
+import kernels.algo.StringsAlignment;
 import util.Utility;
 
 public class CorpusCornetto {

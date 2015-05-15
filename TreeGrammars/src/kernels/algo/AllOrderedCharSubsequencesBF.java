@@ -1,9 +1,12 @@
-package util;
+package kernels.algo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.ListIterator;
+
+import util.Pair;
+import util.Utility;
 
 public class AllOrderedCharSubsequencesBF {
 

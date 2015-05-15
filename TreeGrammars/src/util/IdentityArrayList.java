@@ -20,6 +20,10 @@ public class IdentityArrayList<E> extends ArrayList<E> {
 	}
 
 
+	public IdentityArrayList(int i) {
+		super(i);
+	}
+
 	public boolean contains(Object o) {
 		for(E e : this) {
 			if (e==o)
@@ -96,6 +100,19 @@ public class IdentityArrayList<E> extends ArrayList<E> {
 		return false;
 	}
 	
+	public String toString(char separator) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<E> iter = this.iterator();
+		if (iter.hasNext()) {
+			sb.append(iter.next());
+		}
+		while(iter.hasNext()) {
+			sb.append(separator);
+			sb.append(iter.next());			
+		}
+		return sb.toString();
+	}
+	
 	public static void main(String[] args) {
 		String a = "a";
 		String b = "b";
@@ -104,17 +121,6 @@ public class IdentityArrayList<E> extends ArrayList<E> {
 		IdentityArrayList<String> l1 = new IdentityArrayList<String>(new String[]{a,b,c,d});
 		IdentityArrayList<String> l2 = new IdentityArrayList<String>(new String[]{c,d});
 		System.out.println(l2.isSublistOf(l1));
-	}
-
-	public String toString(char separator) {
-		StringBuilder sb = new StringBuilder();
-		Iterator<E> iter = this.iterator();
-		while(iter.hasNext()) {
-			sb.append(iter.next());
-			if (iter.hasNext())
-				sb.append(separator);
-		}
-		return sb.toString();
 	}
 	
 }

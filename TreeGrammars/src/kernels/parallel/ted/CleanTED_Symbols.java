@@ -1,21 +1,24 @@
-package kernels.parallel;
+package kernels.parallel.ted;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import util.IdentityArrayList;
 import util.file.FileUtil;
 
-public class Annotate_MWE_Ted {
+public class CleanTED_Symbols {
 	
 	
 	static Pattern symbRE = Pattern.compile("\\&\\S+;"); //&apos;	
-	static String[] findSymb = new String[]{"&quot;","&amp;","&apos;", "&#91;", "&#93;"};
-	static char[] replaceSymb = new char[]{  '"',     '&',    '\'',     '[',     ']'};
+	static String[] findSymb = new String[]{"&quot;","&amp;","&apos;", "&#91;", "&#93;", "&lt;", "&gt;"};
+	static char[] replaceSymb = new char[]{  '"',     '&',    '\'',     '[',     ']',    '<',    '>'};
 	static HashMap<String, Character> subSymb = new HashMap<String, Character>();
 	
 	static {
@@ -29,18 +32,9 @@ public class Annotate_MWE_Ted {
 		PrintWriter pw = FileUtil.getPrintWriter(outputFile);
 		Scanner scan = FileUtil.getScanner(inputFile);
 		//HashSet<String> matches = new HashSet<String>();
-		Matcher m = null;
-		StringBuffer sb = null;
 		while(scan.hasNextLine()) {
-			sb = new StringBuffer();
-			String line = scan.nextLine();			
-			m = symbRE.matcher(line);
-			while (m.find()) {
-				char replacement = subSymb.get(m.group());
-				m.appendReplacement(sb, Character.toString(replacement));
-			}
-			m.appendTail(sb);
-			pw.println(sb.toString());
+			String line = scan.nextLine();						
+			pw.println(replaceSymbols(line));
 		}
 		pw.close();
 		/*
@@ -49,6 +43,34 @@ public class Annotate_MWE_Ted {
 		}
 		*/
 	}
+	
+	static StringBuffer sb;
+	static Matcher m;
+	
+	public static String replaceSymbols(String line) {
+		sb = new StringBuffer();			
+		m = symbRE.matcher(line);
+		while (m.find()) {
+			char replacement = subSymb.get(m.group());
+			m.appendReplacement(sb, Character.toString(replacement));
+		}
+		m.appendTail(sb);
+		return sb.toString();
+	}
+	
+	public static void cleanIdentityArray(IdentityArrayList<String> mweList) {
+		ListIterator<String> iter = mweList.listIterator();
+		while(iter.hasNext()) {
+			String mwe = iter.next();
+			String cleanMwe = replaceSymbols(mwe);
+			if (!cleanMwe.equals(mwe)) {
+				iter.remove();
+				iter.add(cleanMwe);
+			}
+		}
+		
+	}
+
 
 	public static void main(String[] args) {
 		String workingDir = "/Users/fedja/Dropbox/ted_experiment/annotation/";
@@ -60,5 +82,6 @@ public class Annotate_MWE_Ted {
 		replaceSymbols(mtItTest2010);
 		
 	}
+
 
 }

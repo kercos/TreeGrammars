@@ -223,6 +223,19 @@ public class Utility {
 			System.out.println(key + "\t" + table.get(key)[0]);
 		}
 	}
+	
+	public static <T> void printInvertedSortedTableInt(TreeMap<Integer, T> table, File outputFile)  {
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(outputFile);
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+		for(Entry<Integer,T> e : table.descendingMap().entrySet()) {
+			pw.println(e.getKey() + "\t" + e.getValue());
+		}
+		pw.close();
+	}
 
 	/**
 	 * Given an Hashtable of type String-->Integer, the method adds a constant

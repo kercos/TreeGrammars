@@ -41,7 +41,7 @@ public class ReverseTable {
 			String line = scan.nextLine();
 			String[] split = line.split("\t");
 			if (split.length==1)
-				continue; //2: //new implementation
+				continue; //2: //seperate line in new implementation
 			if (split.length==2) {
 				//2:      [of, climate] // inlcuding case of old implementation
 				//        [check, for] // new implementation only has these lines

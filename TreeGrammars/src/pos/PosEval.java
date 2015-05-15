@@ -51,6 +51,13 @@ public class PosEval {
 	}
 
 	public static void main(String args[]) throws FileNotFoundException {
+		
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		args = new String[]{
+			root + "it-ud-dev.stanfordCoarsePoS.test",
+			root + "it-ud-dev.stanfordCoarsePoS.gold"
+		};
+		
 		new PosEval(new File(args[0]),new File(args[1]));
 	}
 }

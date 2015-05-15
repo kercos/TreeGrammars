@@ -11,9 +11,9 @@ import java.util.ListIterator;
 import java.util.Scanner;
 import java.util.TreeSet;
 
+import kernels.algo.CommonSubstring;
 import settings.Parameters;
 import util.ArgumentReader;
-import util.CommonSubstring;
 import util.IdentityArrayList;
 import util.PrintProgressPercentage;
 

@@ -9,9 +9,9 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Scanner;
 
+import kernels.algo.CommonSubstring;
 import settings.Parameters;
 import util.ArgumentReader;
-import util.CommonSubstring;
 import util.IdentityArrayList;
 
 public class ParallelSubstringsWPL extends ParallelSubstrings{
@@ -41,7 +41,7 @@ public class ParallelSubstringsWPL extends ParallelSubstrings{
 	
 	protected boolean getSentences() throws FileNotFoundException {
 		super.getSentences();
-		sentencesSouceWPL = getSentencesWPL(sentencesSouce, sourceFileWPL);
+		sentencesSouceWPL = getSentencesWPL(sentencesSource, sourceFileWPL);
 		if (sentencesSouceWPL==null) {
 			System.err.println("Problem in Source Files");
 			return false;
@@ -131,7 +131,7 @@ public class ParallelSubstringsWPL extends ParallelSubstrings{
 		if (source1[0][0].isEmpty() || source2[0][0].isEmpty())
 			return;
 		
-		if (startWithStrangeChar(source1[0][0]) || startWithStrangeChar(source2[0][0])) 
+		if (ignoreSentence(source1[0][0]) || ignoreSentence(source2[0][0])) 
 			return;
 		
 		// GET ALL SUBSTRING MATCHES FROM SOURCE PAIR

@@ -1,4 +1,4 @@
-package util;
+package kernels.algo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+
+import util.IdentityArrayList;
 
 public class CommonSubstring {
 
@@ -89,7 +91,8 @@ public class CommonSubstring {
 		boolean[][] eq = new boolean[M + 2][N + 2];
 
 		// compute length of LCS and all subproblems via dynamic programming
-		HashMap<IdentityArrayList<String>, ArrayList<int[]>> resultTable = new HashMap<IdentityArrayList<String>, ArrayList<int[]>>();
+		HashMap<IdentityArrayList<String>, ArrayList<int[]>> resultTable = 
+				new HashMap<IdentityArrayList<String>, ArrayList<int[]>>();
 		int i = 0, j = 0;
 		int s = 0, t = 0;
 		for (s = 1; s <= M; s++) {
@@ -494,6 +497,7 @@ public class CommonSubstring {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
+		/*
 		System.out.println("Enter firse sentence with space for token separation");
 		BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
 	    String x = bufferRead.readLine();
@@ -512,7 +516,9 @@ public class CommonSubstring {
 		//System.out.println(Arrays.toString(Y));
 		System.out.println("Longest Matching Substrings:");
 		System.out.println(match);
-		/*
+		*/
+		
+		
 		String x = "uno due tre quattro cinque";
 		String y = "due uno due due tre quattro cinque";
 		String[] X = x.split("\\s+");
@@ -527,7 +533,7 @@ public class CommonSubstring {
 		System.out.println(Arrays.toString(X));
 		System.out.println(Arrays.toString(Y));
 		System.out.println(match);
-		*/
+		
 		/*
 		String[][] X = new String[][]{
 				{"anche","<C>","|anche|"},

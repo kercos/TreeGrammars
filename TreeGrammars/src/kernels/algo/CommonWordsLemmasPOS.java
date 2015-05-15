@@ -1,4 +1,4 @@
-package util;
+package kernels.algo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+
+import util.IdentityArrayList;
 
 public class CommonWordsLemmasPOS {
 	

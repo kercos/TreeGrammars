@@ -23,7 +23,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.zip.GZIPOutputStream;
 
-import util.CommonSubstring;
+import kernels.algo.CommonSubstring;
 import util.IdentityArrayList;
 import util.IdentityPair;
 import util.PrintProgress;

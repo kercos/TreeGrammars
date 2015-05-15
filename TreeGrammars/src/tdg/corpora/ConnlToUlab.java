@@ -24,10 +24,12 @@ public class ConnlToUlab {
 	10 	PDEPREL Dependency relation to the PHEAD, or an underscore if not available. The set of dependency relations depends on the particular language. Note that depending on the original treebank annotation, the dependency relation may be meaningfull or simply 'ROOT'. 
 	*/
 	
+	static boolean coarsePos = false;
+	
 	//baseIndex=1;
 	//rootIndex=0;
 	
-	public static void convert(File connlFile, File outputFile, String encoding) {
+	public static void convertToUlab(File connlFile, File outputFile, String encoding) {
 		Scanner connlScan = FileUtil.getScanner(connlFile, encoding);
 		PrintWriter outputWriter = FileUtil.getPrintWriter(outputFile, encoding);
 		String[] linesSentence; 
@@ -43,7 +45,7 @@ public class ConnlToUlab {
 				String[] fields = line.split("\t");
 				words += fields[1];
 				String posCheck = fields[4];
-				pos += (posCheck.equals("_") ? fields[3] : posCheck);
+				pos += (coarsePos || posCheck.equals("_") ? fields[3] : posCheck);
 				indexes += fields[6];
 				if (l!=length-1) {
 					words += "\t";
@@ -53,6 +55,42 @@ public class ConnlToUlab {
 			}
 			outputWriter.println(words);
 			outputWriter.println(pos);
+			outputWriter.println(indexes);
+			outputWriter.println();
+		} while(true);
+		outputWriter.close();
+	}
+	
+	public static void convertToLab(File connlFile, File outputFile, String encoding) {
+		Scanner connlScan = FileUtil.getScanner(connlFile, encoding);
+		PrintWriter outputWriter = FileUtil.getPrintWriter(outputFile, encoding);
+		String[] linesSentence; 
+		do {
+			linesSentence = ConnlSentence.getNextConnlLinesSentence(connlScan);
+			if (linesSentence==null) break;
+			int length = linesSentence.length;
+			String words = "";
+			String pos = "";
+			String labs = "";
+			String indexes = "";			
+			for(int l=0; l<length; l++) {
+				String line = linesSentence[l];
+				String[] fields = line.split("\t");
+				words += fields[1];
+				String posCheck = fields[4];
+				pos += (coarsePos || posCheck.equals("_") ? fields[3] : posCheck);
+				labs += fields[7]; //DEPREL
+				indexes += fields[6];
+				if (l!=length-1) {
+					words += "\t";					
+					pos += "\t";
+					labs += "\t";
+					indexes += "\t";
+				}
+			}
+			outputWriter.println(words);
+			outputWriter.println(pos);
+			outputWriter.println(labs);
 			outputWriter.println(indexes);
 			outputWriter.println();
 		} while(true);
@@ -173,6 +211,22 @@ public class ConnlToUlab {
 	}
 	
 	public static void main(String[] args) {
-		
+		coarsePos = true;
+		String rootPath = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		File itDevX = new File(rootPath + "it-ud-dev.conllx");
+		File itDevUlab = new File(rootPath + "it-ud-dev.ulab");
+		File itDevLab = new File(rootPath + "it-ud-dev.lab");
+		File itTestX = new File(rootPath + "it-ud-test.conllx");
+		File itTestUlab = new File(rootPath + "it-ud-test.ulab");
+		File itTestLab = new File(rootPath + "it-ud-test.lab");
+		File itTrainX = new File(rootPath + "it-ud-train.conllx");
+		File itTrainUlab = new File(rootPath + "it-ud-train.ulab");
+		File itTrainLab = new File(rootPath + "it-ud-train.lab");
+		//convertToUlab(itDevX, itDevUlab, "UTF-8");
+		//convertToUlab(itTestX, itTestUlab, "UTF-8");
+		//convertToUlab(itTrainX, itTrainUlab, "UTF-8");
+		convertToLab(itDevX, itDevLab, "UTF-8");
+		convertToLab(itTestX, itTestLab, "UTF-8");
+		convertToLab(itTrainX, itTrainLab, "UTF-8");
 	}
 }

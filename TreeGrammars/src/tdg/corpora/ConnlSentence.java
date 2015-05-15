@@ -1,10 +1,13 @@
 package tdg.corpora;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Scanner;
 
+import util.Utility;
 import util.file.FileUtil;
 
 public class ConnlSentence {
@@ -65,14 +68,16 @@ public class ConnlSentence {
 		String lines = "";
 		String line = "";
 			
-		while (line.equals("") && connlScan.hasNextLine()) {
+		while ((line.equals("")) && connlScan.hasNextLine()) { //line.startsWith("#")
 			line = connlScan.nextLine();
 		};		
-		if (line.equals("")) return null;
+		if (line.equals("")) 
+			return null;
 		lines += line + "\n";		
 		while(connlScan.hasNextLine()) {			
 			line = connlScan.nextLine();
-			if (line.equals("")) break;
+			if (line.equals("")) 
+				break;
 			lines += line + "\n";
 		}				
 		return lines.split("\n");
@@ -103,5 +108,137 @@ public class ConnlSentence {
 			}
 		} while(true);
 		return treebank;
+	}
+	
+	public static void anonimyzeConllWPHL(File inputFile, File outputFile) throws FileNotFoundException {
+		Scanner scan = new Scanner(inputFile);
+		PrintWriter pw = new PrintWriter(outputFile);
+		boolean newSentence = true;
+		int sentenceCount = 0;
+		while(scan.hasNextLine()) {			
+			String line = scan.nextLine();
+			if (line.isEmpty()) {
+				if (!newSentence) { //very first sentence
+					pw.println();
+				}
+				newSentence = true;
+				sentenceCount++;
+				continue;
+			}
+			if (line.startsWith("#")) {
+				//pw.println(line);
+				continue;
+			}
+			String[] tabs = line.split("\t");
+			//0: index
+			//1: word
+			//2: lemma
+			//3: pos_coarse
+			//4: pos_fine
+			//5: morph
+			//6: head
+			//7: arclabel
+			//8: ?
+			//9: ?
+			String[] newTabs = new String[]{
+					tabs[0], tabs[1], "_", tabs[3], "_", "_", tabs[6], tabs[7], "_", "_"};
+			String outputline = Utility.joinStringArrayToString(newTabs, "\t");
+			pw.println(outputline);
+			newSentence = false;
+		}
+		pw.close();
+		System.out.println("Successfully processed " + sentenceCount + " sentences.");
+	}
+	
+	public static void anonimyzeConll(File inputFile, File outputFile, File stanfordPosTags) throws FileNotFoundException {
+		Scanner scan = new Scanner(inputFile);
+		PrintWriter pw = new PrintWriter(outputFile);
+		boolean newSentence = true;
+		int sentenceCount = 0;
+		ArrayList<ArrayList<String>> pos = stanfordPosTags==null ? null : getPos(stanfordPosTags);
+		Iterator<ArrayList<String>> iterPos = pos==null ? null : pos.iterator();
+		Iterator<String> iterIterPos = pos==null ? null : iterPos.next().iterator();
+		while(scan.hasNextLine()) {			
+			String line = scan.nextLine();
+			if (line.isEmpty()) {
+				if (!newSentence) { //very first sentence
+					pw.println();
+				}
+				newSentence = true;
+				iterIterPos = pos==null || !iterPos.hasNext() ? null : iterPos.next().iterator();
+				sentenceCount++;
+				continue;
+			}
+			if (line.startsWith("#")) {
+				pw.println(line);
+				continue;
+			}
+			String[] tabs = line.split("\t");
+			//0: index
+			//1: word
+			//2: lemma
+			//3: pos_coarse
+			//4: pos_fine
+			//5: morph
+			//6: head
+			//7: arclabel
+			//8: ?
+			//9: ?
+			String outputline = pos==null ? 
+					tabs[0] + "\t" + tabs[1] + "\t_\t_\t_\t_\t_\t_\t_\t_" :
+					tabs[0] + "\t" + tabs[1] + "\t" + iterIterPos.next() + "\t_\t_\t_\t_\t_\t_\t_";	
+			pw.println(outputline);
+			newSentence = false;
+		}
+		pw.close();
+		System.out.println("Successfully processed " + sentenceCount + " sentences.");
+	}
+	
+	private static ArrayList<ArrayList<String>> getPos(File stanfordPosTags) throws FileNotFoundException {
+		ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();		
+		Scanner scan = new Scanner(stanfordPosTags);
+		while(scan.hasNextLine()) {
+			String line = scan.nextLine();
+			ArrayList<String> linePos = new ArrayList<String>();
+			String[] wordsPos = line.split(" ");
+			for(String wp : wordsPos) {
+				String p = wp.split("_")[1];
+				linePos.add(p);
+			}
+			result.add(linePos);
+		}
+		return result;
+	}
+		
+	public static void goldWithTestPosUTB() throws FileNotFoundException {
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		for (String f : new String[]{"test","dev"}) {
+			File inputFile = new File(root + "it-ud-" + f + ".conllx");
+			//File outputFile = new File(root + "it-ud-" + f + ".conllu.blanks");
+			//anonimyzeConll(inputFile, outputFile, null);
+
+			File outputFile = new File(root + "it-ud-" + f + ".conllx.testPos");
+			File posFile = new File(root + "it-ud-" + f + ".stanfordCoarsePoS.test");
+			anonimyzeConll(inputFile, outputFile, posFile);
+		}
+	}
+	
+	public static void anonymizeUTB() throws FileNotFoundException {
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		for (String f : new String[]{"train","test","dev"}) {
+			File inputFile = new File(root + "it-ud-" + f + ".conllx");
+			
+			//File outputFile = new File(root + "it-ud-" + f + ".conllx.wphl");
+			//anonimyzeConllWPHL(inputFile, outputFile);
+			
+			File outputFile = new File(root + "it-ud-" + f + ".blind.conllx");
+			anonimyzeConll(inputFile, outputFile, null);
+		}
+	}
+
+	
+	public static void main(String[] args) throws FileNotFoundException {
+		//goldWithTestPosUTB();
+		anonymizeUTB();
 	}
 }

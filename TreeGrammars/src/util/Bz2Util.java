@@ -1,5 +1,6 @@
 package util;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,6 +23,7 @@ import util.file.FileUtil;
 
 
 public class Bz2Util {
+	
 
 	private static String decompressFromFile(File outputFile) {
 		StringBuilder result = new StringBuilder();		 

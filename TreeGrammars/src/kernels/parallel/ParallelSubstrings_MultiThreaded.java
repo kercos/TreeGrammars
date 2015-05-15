@@ -5,15 +5,14 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.ListIterator;
 
+import kernels.algo.AllOrderedStringExactSubsequences;
+import kernels.algo.CommonSubstring;
 import settings.Parameters;
 import util.ArgumentReader;
-import util.CommonSubstring;
 
 
 public class ParallelSubstrings_MultiThreaded extends ParallelSubstrings{
 
-	protected static String getVersion() { return "1.03"; }
-	
 	int threads;
 	ListIterator<String[]> sourceIter1, targetIter1, sourceIter2, targetIter2;
 	String[] source1, source2, target1, target2;
@@ -31,13 +30,13 @@ public class ParallelSubstrings_MultiThreaded extends ParallelSubstrings{
 	
 	protected void init() throws FileNotFoundException {
 		super.init();
-		sourceIter1 = sentencesSouce.listIterator();
+		sourceIter1 = sentencesSource.listIterator();
 		targetIter1 = sentencesTarget.listIterator();
 		source1 = sourceIter1.next();
 		target1 = targetIter1.next();
 		index1 = 0;
 		index2 = 1;
-		sourceIter2 = sentencesSouce.listIterator(index2);
+		sourceIter2 = sentencesSource.listIterator(index2);
 		targetIter2 = sentencesTarget.listIterator(index2);
 	}
 	
@@ -95,7 +94,7 @@ public class ParallelSubstrings_MultiThreaded extends ParallelSubstrings{
 			target1 = targetIter1.next();
 			index1++;
 			index2 = index1 + 1;
-			sourceIter2 = sentencesSouce.listIterator(index2);
+			sourceIter2 = sentencesSource.listIterator(index2);
 			targetIter2 = sentencesTarget.listIterator(index2);
 			if (sourceIter2.hasNext()) {
 				progress.next();
@@ -151,9 +150,10 @@ public static void main(String args[]) throws FileNotFoundException {
 		
 		String usage = "ParallelSubstrings_MultiThreaded v. " + getVersion() + "\n" + 
 				"usage: java ParallelSubstringsMatch "
-				+ "-sourceFile:file, -targetFile:file, -outputFile:file -minMatchSize:n -threads:n";		
+				+ "-sourceFile:file, -targetFile:file, -outputFile:file "
+				+ "-minMatchSize:n -threads:n -onlyContiguous:true";		
 		
-		if (args.length!=5) {
+		if (args.length!=6) {
 			System.err.println("Wrong number of arguments!");
 			System.err.println(usage);
 		}
@@ -163,6 +163,7 @@ public static void main(String args[]) throws FileNotFoundException {
 		File outputFile = ArgumentReader.readFileOption(args[2]);
 		int minMatchSize = ArgumentReader.readIntOption(args[3]);
 		int threads = ArgumentReader.readIntOption(args[4]);
+		onlyContiguous = ArgumentReader.readBooleanOption(args[5]);
 		ParallelSubstrings_MultiThreaded PS = new ParallelSubstrings_MultiThreaded(
 				sourceFile, targetFile, outputFile, minMatchSize, threads);
 		PS.run();

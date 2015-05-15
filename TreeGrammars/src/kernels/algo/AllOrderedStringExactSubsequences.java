@@ -1,10 +1,13 @@
-package util;
+package kernels.algo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.ListIterator;
 import java.util.Random;
 
+import util.IdentityArrayList;
 import util.Pair;
 
 /**
@@ -16,6 +19,7 @@ import util.Pair;
 public class AllOrderedStringExactSubsequences {
 
 	public static final int maxComb = 1000;
+	public static int oneSolutions = 0;
 	
 	Cell[][] cellMatrix;
 	String[] a1, a2;	
@@ -134,10 +138,24 @@ public class AllOrderedStringExactSubsequences {
 		}
 		return hasOneSolution = true;		
 	}
-
+	
 	private ArrayList<ArrayList<Pair<String>>> getOneSolution() {
 		if (!hasOneSolution) return null;
-		System.out.println("One solution!");
+		//System.out.println("One solution!");
+		ArrayList<ArrayList<Pair<String>>> result = new ArrayList<ArrayList<Pair<String>>>();
+		getOneSolution(result);
+		return result;
+	}
+	
+	private HashSet<ArrayList<Pair<String>>> getOneSolutionSet() {
+		if (!hasOneSolution) return null;
+		//System.out.println("One solution!");
+		HashSet<ArrayList<Pair<String>>> result = new HashSet<ArrayList<Pair<String>>>();
+		getOneSolution(result);
+		return result;
+	}
+
+	private void getOneSolution(Collection<ArrayList<Pair<String>>> collection) {		
 		ArrayList<ArrayList<Pair<String>>> result = new ArrayList<ArrayList<Pair<String>>>();
 		ArrayList<Pair<String>> onlySolution = new ArrayList<Pair<String>>();
 		int currentXIndex = 0;
@@ -151,12 +169,12 @@ public class AllOrderedStringExactSubsequences {
 				currentXIndex++;
 			}
 		}		
-		result.add(onlySolution);
-		return result;
+		result.add(onlySolution);		
 	}
 
 	public static boolean equal(String a, String b) {
-		return a.charAt(0)==b.charAt(0);
+		//return a.charAt(0)==b.charAt(0);
+		return a==b;
 	}
 		
 	public long getExactSubsequencesNumber() {
@@ -170,6 +188,14 @@ public class AllOrderedStringExactSubsequences {
 		if (!hasOneSolution) return null;
 		Cell c = cellMatrix[xMax][yMax];		
 		ArrayList<ArrayList<Pair<String>>> result = new ArrayList<ArrayList<Pair<String>>>();
+		c.addAllSubSequences(new ArrayList<Pair<String>>(), result);
+		return result;
+	}
+	
+	public HashSet<ArrayList<Pair<String>>> getExactSubsequencesSet() {
+		if (!hasOneSolution) return null;
+		Cell c = cellMatrix[xMax][yMax];		
+		HashSet<ArrayList<Pair<String>>> result = new HashSet<ArrayList<Pair<String>>>();
 		c.addAllSubSequences(new ArrayList<Pair<String>>(), result);
 		return result;
 	}
@@ -210,8 +236,41 @@ public class AllOrderedStringExactSubsequences {
 		AllOrderedStringExactSubsequences O = new AllOrderedStringExactSubsequences(t1, t2);
 		long combinations = O.getExactSubsequencesNumber();
 		if (combinations==0) return null;
-		if (combinations>maxComb) return O.getOneSolution();
+		if (combinations>maxComb) {
+			oneSolutions++;
+			return O.getOneSolution();
+		}
 		return O.getExactSubsequences();
+	}
+	
+	public static HashSet<ArrayList<Pair<String>>> getallExactSubsequencesSetBackupOnSimple(
+			String[] t1, String[] t2) {		
+		AllOrderedStringExactSubsequences O = new AllOrderedStringExactSubsequences(t1, t2);
+		long combinations = O.getExactSubsequencesNumber();
+		if (combinations==0) return null;
+		if (combinations>maxComb) {
+			oneSolutions++;
+			return O.getOneSolutionSet();
+		}
+		return O.getExactSubsequencesSet();
+	}
+	
+	public static HashSet<IdentityArrayList<String>> getAllMaxCommonSubsequencesIdentityBackupOnSimple(
+			String[] t1, String[] t2, int minMatchSize) {
+		HashSet<ArrayList<Pair<String>>> subsequencesPairs = getallExactSubsequencesSetBackupOnSimple(t1,t2);
+		HashSet<IdentityArrayList<String>> result = new HashSet<IdentityArrayList<String>>();
+		if (subsequencesPairs==null)
+			return result;		
+		for(ArrayList<Pair<String>> sp : subsequencesPairs) {
+			if (sp.size()<minMatchSize)
+				continue;
+			ArrayList<String> a = new ArrayList<String>(sp.size());
+			for(Pair<String> p : sp) {
+				a.add(p.getFirst());
+			}
+			result.add(new IdentityArrayList<String>(a));
+		}
+		return result;
 	}
 	
 	protected class Cell {
@@ -238,7 +297,7 @@ public class AllOrderedStringExactSubsequences {
 	
 		
 		public void addAllSubSequences( ArrayList<Pair<String>> currentThread, 
-				ArrayList<ArrayList<Pair<String>>> result) {
+				Collection<ArrayList<Pair<String>>> result) {
 			
 			if (leftReachable && diagonalReachable) {
 				
@@ -288,25 +347,40 @@ public class AllOrderedStringExactSubsequences {
 		}
 		return result;
 	}
+	
+
+	private static void intern(String[] a) {
+		for(int i=0; i<a.length; i++) {
+			a[i].intern();
+		}		
+	}
 
 	public static void main(String[] args) {		 
-		String[] a1 = new String[]{"A1", "C2", "C3", "A4", "A5", "C6", "A7", "A8", "C9"};
-		String[] a2 = new String[]{"C1"};
+		String[] a1 = new String[]{"il", "mio", "amico", "non", "vuole", "venire"};
+		String[] a2 = new String[]{"il", "mio", "caro", "amico", "vuole", "venire"};
+		intern(a1);
+		intern(a2);
 		//for(int i=0; i<100000; i++) {
 			//String[] a1 = getRandomString(55,3);
 			//String[] a2 = getRandomString(3,3);			
 			System.out.println(Arrays.toString(a1));
 			System.out.println(Arrays.toString(a2));
-			ArrayList<ArrayList<Pair<String>>> result =
-				getallExactSubsequencesBackupOnSimple(a1, a2);					 
+			
+			HashSet<IdentityArrayList<String>> result = getAllMaxCommonSubsequencesIdentityBackupOnSimple(a1, a2, 2);
+			System.out.println(result.size());
+			for(IdentityArrayList<String> m : result) {
+				System.out.println(m);
+			}
+			//HashSet<ArrayList<Pair<String>>> result =
+			//	getallExactSubsequencesSetBackupOnSimple(a1, a2);
 			//long cardinality = O.getExactSubsequencesNumber();
 			//int size = result==null ? 0 : result.size();
 			//if (size != cardinality) {				
 				//System.out.println(cardinality);
-				System.out.println(result.size());
-				for(ArrayList<Pair<String>> pList : result) {
-					System.out.println(pList);
-				}
+			//	System.out.println(result.size());
+			//	for(ArrayList<Pair<String>> pList : result) {
+			//		System.out.println(pList);
+			//	}
 				//break;
 			//}			
 			//System.out.println();			

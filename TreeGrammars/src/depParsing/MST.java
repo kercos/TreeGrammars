@@ -75,7 +75,7 @@ public class MST {
 
 	}
 	
-	public static void main2(String args[]) {
+	public static void wsj() {
 		Parameters.lengthLimitTest = 40;
 		Parameters.lengthLimitTraining = 40;
 		String dirName = "COLLINS99";
@@ -128,7 +128,12 @@ public class MST {
 		} catch (Exception e) {FileUtil.handleExceptions(e);}	
 	}
 	
-	public static void main(String args[]) {
+	public static void tanl() {
+		//mstparser.DependencyParser 
+		//train train-file:data/train.ulab model-name:dep.model 
+		//test test-file:data/test.ulab output-file:out.txt 
+		//eval gold-file:data/test.ulab
+		
 		int order = 2;
 		String projectivity = "non-proj"; //proj, non-oroj
 		
@@ -169,5 +174,65 @@ public class MST {
 		} catch (Exception e) {FileUtil.handleExceptions(e);}	
 	}
 	
+	public static void utbIt() {
+		//mstparser.DependencyParser 
+		//train train-file:data/train.ulab model-name:dep.model 
+		//test test-file:data/test.ulab output-file:out.txt 
+		//eval gold-file:data/test.ulab
+		
+		int order = 2;
+		String projectivity = "non-proj"; //proj, non-proj
+		
+		//String rootPath = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		String rootPath = "/gardner0/data/Corpora/UniversalTreebank/langs/it/";
+		
+		File training = new File(rootPath + "it-ud-train.lab");
+		File goldOut = new File(rootPath + "it-ud-test.lab");
+		
+		File parsedFile = new File(rootPath + "it-ud-test.MST.lab");
+		File depModel = new File(rootPath + "mst_dep_model_nonProj_order" + order);
+		
+		String[] argsTrainTestEval = {
+				
+				/*
+				"train", 
+				"train-file:" + training,
+				"model-name:" + depModel,
+				"training-iterations:" + 10,
+				"decode-type:" + projectivity,
+				"training-k:" + 1,
+				"loss-type:" + "punc",
+				"create-forest:" + "true",
+				"order:" + order,
+				"format:MST"
+				*/
+				
+				/*
+				"test",
+				"test-file:" + goldOut,
+				"model-name:" + depModel,
+				"output-file:" + parsedFile ,
+				"decode-type:" + projectivity,
+				"order:" + order,
+				"format:MST"
+				*/
+					
+				
+				"eval",
+				"gold-file:" + goldOut,
+				"output-file:" + parsedFile,
+				"format:MST"
+				
+
+			};			
+						
+		try{
+		mstparser.DependencyParser.main(argsTrainTestEval);
+		} catch (Exception e) {FileUtil.handleExceptions(e);}	
+	}
+	
+	public static void main(String[] args) {
+		utbIt();
+	}
 
 }

@@ -34,7 +34,7 @@ public class PruneTable_Fisher {
 		targetTable = new HashMap<IdentityArrayList<String>, TreeSet<Integer>>();
 		readFile(inputFile);
 		
-		totalIndexes = ParallelSubstrings.getTotalIndexes(inputTable);
+		totalIndexes = ParallelSubstrings.getTotalUniqueIndexes(inputTable);
 		Parameters.logStdOutPrintln("Total Indexes: " + totalIndexes);		
 		fe = new FisherExact(totalIndexes);				
 		pruningThreshold = fe.getTwoTailedP(2,0,0,totalIndexes-2);	

@@ -316,7 +316,7 @@ public class FileUtil {
 	}
 	
 	public static File changeExtension(File selectedFile, String ext) {
-		String extWithDot = "." + ext;
+		String extWithDot = ext.charAt(0)=='.' ? ext : "." + ext;
 		String path = selectedFile.getParent();
 		String fileName = selectedFile.getName();
 		if (fileName.endsWith(extWithDot)) return selectedFile;			

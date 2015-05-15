@@ -21,9 +21,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.zip.GZIPOutputStream;
 
+import kernels.algo.CommonSubstring;
 import settings.Parameters;
 import util.ArgumentReader;
-import util.CommonSubstring;
 import util.IdentityArrayList;
 import util.PrintProgressPercentage;
 import util.Utility;

@@ -40,7 +40,7 @@ public class PruneTable_Stats {
 		Parameters.logStdOutPrintln("Output File: " + outputFileStats);
 		
 		reversedTable = ReverseTable.reverseTable(inputFile);
-		totalIndexes = ParallelSubstrings.getTotalIndexes(reversedTable);
+		totalIndexes = ParallelSubstrings.getTotalUniqueIndexes(reversedTable);
 		
 		Parameters.logStdOutPrintln("Total Indexes (N): " + totalIndexes);		
 		fe = new FisherExact(totalIndexes);				
