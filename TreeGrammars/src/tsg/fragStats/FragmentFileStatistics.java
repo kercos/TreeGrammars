@@ -39,6 +39,8 @@ public class FragmentFileStatistics {
 	Hashtable<Integer, long[]> freqTable = new Hashtable<Integer, long[]>();
 	HashMap<Integer, int[]> depthBinTable = new HashMap<Integer, int[]>();
 	
+	static boolean newFragFormat = false;
+	
 	public FragmentFileStatistics(File fragmentFile,
 		File outputFile, boolean compressed) throws Exception {
 		
@@ -61,8 +63,11 @@ public class FragmentFileStatistics {
 	private void analyzeNextLine(String line) throws Exception {
 		progress.next();		
 		String[] lineSplit = line.split("\t");
-		TSNodeLabel fragment = new TSNodeLabel(lineSplit[0], false);
-		int freq = Integer.parseInt(lineSplit[1]);
+		TSNodeLabel fragment =
+				newFragFormat ?
+				TSNodeLabel.newTSNodeLabelStd(lineSplit[0]) :
+				new TSNodeLabel(lineSplit[0], false);	
+		int freq = lineSplit.length>1 ? Integer.parseInt(lineSplit[1]) : -1;
 		int maxDepth = fragment.maxDepth();
 		int maxBranching = fragment.maxBranching();
 		int words = fragment.countLexicalNodes();
@@ -245,6 +250,7 @@ public class FragmentFileStatistics {
 		File fragmentFile = new File(args[0]);
 		File outputFile = new File(args[1]);
 		boolean compressed = ArgumentReader.readBooleanOption(args[2]);
+		newFragFormat = ArgumentReader.readBooleanOption(args[3]);
 		
 		new FragmentFileStatistics(fragmentFile, outputFile, compressed);
 	}	

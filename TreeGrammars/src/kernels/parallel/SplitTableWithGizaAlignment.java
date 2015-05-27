@@ -11,6 +11,7 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import settings.Parameters;
+import util.ArgumentReader;
 import util.PrintProgress;
 import util.Utility;
 import util.file.FileUtil;
@@ -20,6 +21,7 @@ public class SplitTableWithGizaAlignment {
 	File systemLogFile;
 	File inputTableFile;
 	File outputFileGiza, outputFileNoGiza;
+	boolean allCoveredConstraint;
 	int[] pairsIndexes, pairsIndexesAligned, pairsIndexesNoAligned, pairsIndexesSkip;
 	
 	Vector<HashMap<Integer, HashSet<Integer>>> alignmentTables; 
@@ -27,13 +29,14 @@ public class SplitTableWithGizaAlignment {
 	Vector<String[]> sourceSentences, targetSentences;
 
 	public SplitTableWithGizaAlignment(File sourceFile, File targetFile,
-			File alignFile, File inputTableFile) throws FileNotFoundException {
+			File alignFile, File inputTableFile, boolean allCoveredConstraint) throws FileNotFoundException {
 		
 		this.inputTableFile = inputTableFile;
 		outputFileGiza =  FileUtil.changeExtension(inputTableFile, "align.giza.gz");;
 		outputFileNoGiza =  FileUtil.changeExtension(inputTableFile, "align.nogiza.gz");;
 		systemLogFile = FileUtil.changeExtension(inputTableFile, "align.log");
-		
+		this.allCoveredConstraint = allCoveredConstraint;		
+
 		pairsIndexes = new int[2];
 		pairsIndexesAligned = new int[2];
 		pairsIndexesNoAligned = new int[2];
@@ -47,6 +50,7 @@ public class SplitTableWithGizaAlignment {
 		Parameters.logStdOutPrintln("Alignment File: " + alignFile);
 		Parameters.logStdOutPrintln("Output File Giza: " + outputFileGiza);
 		Parameters.logStdOutPrintln("Output File No Giza: " + outputFileNoGiza);
+		Parameters.logStdOutPrintln("All covered constraint: " + allCoveredConstraint);
 		
 		Parameters.logStdOutPrint("Reading source sentences: " );
 		sourceSentences = readInternSentence(sourceFile);
@@ -81,15 +85,19 @@ public class SplitTableWithGizaAlignment {
 		}
 		return result;
 	}
-
-	@SuppressWarnings("resource")
+	
 	private void readAlignemntFile(File alignementFile) throws FileNotFoundException {
 		Parameters.logStdOutPrint("Reading alignment indexes: " );
-		alignmentTables = new Vector<HashMap<Integer, HashSet<Integer>>> ();
+		alignmentTables = getAlignemntTableFromFile(alignementFile);
+		Parameters.logStdOutPrintln(""+alignmentTables.size());
+	}
+	
+	public static Vector<HashMap<Integer, HashSet<Integer>>> getAlignemntTableFromFile(File alignementFile) throws FileNotFoundException {
+		Vector<HashMap<Integer, HashSet<Integer>>> result = new Vector<HashMap<Integer, HashSet<Integer>>> ();
 		Scanner scan = new Scanner(alignementFile);
 		while (scan.hasNextLine()) {
 			HashMap<Integer, HashSet<Integer>> table = new HashMap<Integer, HashSet<Integer>>();
-			alignmentTables.add(table);
+			result.add(table);
 			String line = scan.nextLine();
 			String[] split = line.split("\\s");
 			for (String s : split) {
@@ -99,7 +107,8 @@ public class SplitTableWithGizaAlignment {
 				Utility.putInHashMap(table, indexSource, indexTarget);
 			}			
 		}
-		Parameters.logStdOutPrintln(""+alignmentTables.size());
+		scan.close();
+		return result;
 	}
 
 
@@ -176,7 +185,10 @@ public class SplitTableWithGizaAlignment {
 			String[] sentenceSource = sourceSentences.get(index);			
 			String[] sentenceTarget = targetSentences.get(index);
 			HashMap<Integer, HashSet<Integer>> alTable = alignmentTables.get(index);
-			int aligned = isAligned(sentenceSource, sentenceTarget, sourcePhrase, targetPhrase, alTable);
+			int aligned =
+					allCoveredConstraint ?
+					areAllAligned(sentenceSource, sentenceTarget, sourcePhrase, targetPhrase, alTable) :
+					areSomeButNotAllAligned(sentenceSource, sentenceTarget, sourcePhrase, targetPhrase, alTable);
 			//1: aligned
 			//0: not aligned
 			//-1: skip index (multiple matches)
@@ -208,24 +220,65 @@ public class SplitTableWithGizaAlignment {
 	 * 0: not aligned
 	 * -1: skip sentence (multiple matches) 
 	 */
-	private int isAligned(String[] sentenceSource, String[] sentenceTarget, 
+	public static int areAllAligned(String[] sentenceSource, String[] sentenceTarget, 
 			String[] sourcePhrase, String[] targetPhrase, 
-			HashMap<Integer, HashSet<Integer>> alignTable) {		
+			HashMap<Integer, HashSet<Integer>> alignTable) {	
+		
+		boolean[] sCovered = new boolean[sourcePhrase.length];
+		boolean[] tCovered = new boolean[targetPhrase.length];
+		
+		if (setAlignmentCoverage(sentenceSource, sentenceTarget, sourcePhrase, targetPhrase, alignTable,
+				sCovered, tCovered)) {
+			return Utility.allTrue(sCovered) && Utility.allTrue(tCovered) ? 1 : 0;
+		}
+		else return -1;
+		
+	}
+	
+	/**
+	 * 
+	 * @param sentenceSource
+	 * @param sentenceTarget
+	 * @param sourcePhrase
+	 * @param targetPhrase
+	 * @param alignTable
+	 * @return
+	 * 1: aligned
+	 * 0: not aligned
+	 * -1: skip sentence (multiple matches) 
+	 */
+	public static int areSomeButNotAllAligned(String[] sentenceSource, String[] sentenceTarget, 
+			String[] sourcePhrase, String[] targetPhrase, 
+			HashMap<Integer, HashSet<Integer>> alignTable) {	
+		
+		boolean[] sCovered = new boolean[sourcePhrase.length];
+		boolean[] tCovered = new boolean[targetPhrase.length];
+		
+		if (setAlignmentCoverage(sentenceSource, sentenceTarget, sourcePhrase, targetPhrase, alignTable,
+				sCovered, tCovered)) {
+			return Utility.someButNotAllTrue(sCovered) && Utility.allTrue(tCovered) ? 1 : 0;
+		}
+		else return -1;
+		
+	}
+	
+	public static boolean setAlignmentCoverage(String[] sentenceSource, String[] sentenceTarget, 
+			String[] sourcePhrase, String[] targetPhrase, 
+			HashMap<Integer, HashSet<Integer>> alignTable, boolean[] sCovered, boolean[] tCovered) {		
 		
 		int[] sourceStarts = getStarts(sourcePhrase, sentenceSource);
+		
+		//accept only one mactch in source and target
 		if (sourceStarts.length>1)
-			return -1;
+			return false;
 		int[] targetStarts = getStarts(targetPhrase, sentenceTarget);
 		if (targetStarts.length>1)
-			return -1;
+			return false;
 		
 		int s_start = sourceStarts[0];
 		int s_end = s_start + sourcePhrase.length;
 		int t_start = targetStarts[0];
 		int t_end = t_start + targetPhrase.length;
-		
-		boolean[] sCovered = new boolean[sourcePhrase.length];
-		boolean[] tCovered = new boolean[targetPhrase.length];
 		
 		int sourcePos = 0;
 		for(int indexSource = s_start; indexSource<s_end; indexSource++) {
@@ -241,7 +294,7 @@ public class SplitTableWithGizaAlignment {
 			sourcePos++;
 		}		
 		
-		return Utility.allTrue(sCovered) && Utility.allTrue(tCovered) ? 1 : 0;
+		return true;
 		
 	}
 
@@ -285,8 +338,9 @@ public class SplitTableWithGizaAlignment {
 		File targetFile = new File(args[1]);
 		File alignFile = new File(args[2]);
 		File inputTable = new File(args[3]);
+		boolean allCoveredConstraint = ArgumentReader.readBooleanOption(args[4]);
 		
-		new SplitTableWithGizaAlignment(sourceFile, targetFile, alignFile, inputTable);
+		new SplitTableWithGizaAlignment(sourceFile, targetFile, alignFile, inputTable, allCoveredConstraint);
 		
 		
 		/*

@@ -557,7 +557,7 @@ public class ParallelSubstrings {
 
 	/**
 	 * Print final table to file
-	 * @param table
+	 * @param sourceTargetIndex
 	 * @param outputFileMain
 	 */
 	private void printFinalTableToFile() {

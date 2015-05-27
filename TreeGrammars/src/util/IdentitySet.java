@@ -1,17 +1,20 @@
 package util;
 
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.ArrayList;
 
+import tsg.TSNodeLabel;
+
 public class IdentitySet <T> implements Set<T> {
 	
 	ArrayList<T> set;
 
-	public IdentitySet() {
-		set = new ArrayList<T>();
+	public IdentitySet(Collection<? extends T> c) {
+		this.set = new ArrayList<T>(c);
 	}
 
 	public boolean add(T e) {

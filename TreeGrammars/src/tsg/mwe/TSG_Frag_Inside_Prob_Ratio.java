@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Scanner;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
@@ -32,8 +34,6 @@ public class TSG_Frag_Inside_Prob_Ratio {
 
 	public static Hashtable<TSNodeLabel, double[]> fragmentTableLogFreq;
 	public static Hashtable<Label, double[]> rootTableLogFreq;
-
-	public static ArrayList<TSNodeLabelIndex> treebankIndex;
 	
 	static PrintProgress printProgress;
 	
@@ -49,7 +49,7 @@ public class TSG_Frag_Inside_Prob_Ratio {
 		Scanner scan = FileUtil.getScanner(fragmentFile);
 		int countFragments = 0;
 		while(scan.hasNextLine()) {
-			String line = scan.nextLine();
+			String line = scan.nextLine();			
 			if (line.equals("")) continue;
 			countFragments++;
 			String[] fragmentFreq = line.split("\t");
@@ -63,20 +63,6 @@ public class TSG_Frag_Inside_Prob_Ratio {
 		scan.close();
 	}
 	
-	/**
-	 * Read the treebank. Every structure is now represented as a TSNodeLabelIndex,
-	 * a recursive structure of nodes where every node has a unique index in a depth-first
-	 * manner (the root has index 0).  
-	 * @param treebankFile
-	 * @throws Exception
-	 */
-	private static void readTreeBank(File treebankFile) throws Exception {
-		ArrayList<TSNodeLabel> treebank = TSNodeLabel.getTreebank(treebankFile);
-		treebankIndex = new ArrayList<TSNodeLabelIndex>();		
-		for(TSNodeLabel t : treebank) {
-			treebankIndex.add(new TSNodeLabelIndex(t));
-		}		
-	}
 	
 	public static void printFragmentLogInsideProbRatio(File outputFile) {
 		PrintWriter pw = FileUtil.getPrintWriter(outputFile);
@@ -91,27 +77,64 @@ public class TSG_Frag_Inside_Prob_Ratio {
 		pw.close();
 	}
 	
+	public static void printFragmentLogInsideProbRatioSorted(File outputFile, int maxLength, boolean onlyFullyLexicalized) {
+		for(int i=2; i<=maxLength; i++) {						
+			HashMap<String, Double> unsortedTable = new HashMap<String, Double>(); 
+			for(Entry<TSNodeLabel,double[]> e : fragmentTableLogFreq.entrySet()) {
+				TSNodeLabel frag = e.getKey();
+				if (onlyFullyLexicalized && !frag.yieldsOnlyLexItems() || frag.countLexicalNodes()!=i)
+					continue;
+				String fragmentString = frag.toStringStandard();
+				double[] logProbInside = e.getValue();
+				double logRatio = getFragLogProb(frag)-logProbInside[1];
+				//double logRatio = logProbInside[0]-logProbInside[1]; // old version works best for french
+				unsortedTable.put(fragmentString, logRatio);
+				
+			}
+			if (unsortedTable.isEmpty())
+				continue;
+			TreeMap<Double, HashSet<String>> sortedTable = Utility.reverseAndSortTable(unsortedTable);
+			File of = new File(outputFile + "_" + i);
+			PrintWriter pw = FileUtil.getPrintWriter(of);
+			for(Entry<Double, HashSet<String>> e : sortedTable.descendingMap().entrySet()) {
+				for(String t : e.getValue()) {
+					pw.println(t + "\t" + e.getKey());
+				}				
+			}
+			pw.close();
+		}		
+	}
+	
 	/**
 	 * Add in the fragment hashtable the CFG extracted from the treebank (if not
 	 * already present), with their log-frequencies.
 	 * @throws Exception
 	 */
-	public static void addCFGfragmentsFromTreebank() throws Exception {		
-		Hashtable<String, int[]> ruleTable = new Hashtable<String, int[]>(); 
-		for(TSNodeLabel t : treebankIndex) {
+	public static void addCFGfragmentsFromTreebank(File treebankFile) throws Exception {		
+		Hashtable<String, int[]> ruleTable = new Hashtable<String, int[]>();
+		Scanner scan = new Scanner(treebankFile);
+		printProgress = new PrintProgress("Adding CFGrules from treebank:");
+		while(scan.hasNextLine()) {
+			printProgress.next();
+			String line = scan.nextLine();
+			if (line.isEmpty())
+				continue;
+			TSNodeLabel t = TSNodeLabel.newTSNodeLabelStd(line); //new TSNodeLabel(line);
 			ArrayList<TSNodeLabel> nodes = t.collectAllNodes();
 			for(TSNodeLabel n : nodes) {
-				if (n.isLexical) continue;
+				if (n.isTerminal()) continue;
 				String rule = n.cfgRule();
 				Utility.increaseInTableInt(ruleTable, rule);
 			}
 		}
+		printProgress.end();
 		Parameters.reportLineFlush("Read " + ruleTable.size() + " CFG rules from treebank");
 		int kept = 0;
 		for(Entry<String, int[]> e : ruleTable.entrySet()) {
 			TSNodeLabel ruleFragment = new TSNodeLabel("( " + e.getKey() + ")", false);
 			if (fragmentTableLogFreq.containsKey(ruleFragment)) continue;
-			double logFreq = Math.log(e.getValue()[0]);
+			double freq = 0.01 * e.getValue()[0];
+			double logFreq = Math.log(freq);
 			fragmentTableLogFreq.put(ruleFragment, new double[]{logFreq, -1});
 			kept++;
 		}
@@ -133,6 +156,18 @@ public class TSG_Frag_Inside_Prob_Ratio {
 		Parameters.reportLineFlush("Built root freq. table: " + rootTableLogFreq.size() + " entries.");
 	}
 	
+	public static Hashtable<Label, double[]> getRootFreq(Hashtable<TSNodeLabel, double[]> fragmentTableLogFreq) {
+		Hashtable<Label, double[]> result = new Hashtable<Label, double[]>();
+		for(Entry<TSNodeLabel, double[]> e : fragmentTableLogFreq.entrySet()) {
+			Label rootLabel = e.getKey().label;
+			double logFreq = e.getValue()[0];
+			Utility.increaseInTableDoubleLogArray(rootTableLogFreq, rootLabel, logFreq);
+			// add logFreq to the value of rootLable in the table (taking care of sum of logs)
+		}
+		Parameters.reportLineFlush("Built root freq. table: " + rootTableLogFreq.size() + " entries.");
+		return result;
+	}
+	
 	
 	public static double getFragLogProb(TSNodeLabel frag) {
 		Label root = frag.label;
@@ -141,11 +176,13 @@ public class TSG_Frag_Inside_Prob_Ratio {
 	}
 	
 	
-	public static void calculateInsideProbs() {
+	public static void calculateInsideProbs(boolean onlyFullyLexicalized) {
 		printProgress = new PrintProgress("Computing Fragments Inside Probs:");
 		for(Entry<TSNodeLabel, double[]> e : fragmentTableLogFreq.entrySet()) {
 			printProgress.next();
 			TSNodeLabelIndex frag = new TSNodeLabelIndex(e.getKey());
+			if (onlyFullyLexicalized && !frag.yieldsOnlyLexItems())
+				continue;
 			double[] probs = e.getValue();
 			probs[1] = getInsideLogProb(frag);
 			//System.out.println(getFragLogProb(frag) + "\t" +  probs[1]);
@@ -384,6 +421,40 @@ public class TSG_Frag_Inside_Prob_Ratio {
 					
 	}
 	
+	public static void runStandard(String[] args) throws Exception {
+		
+		File treebankFile = ArgumentReader.readFileOption(args[0]);
+		File fragmentFile = ArgumentReader.readFileOption(args[1]);		
+		File outputFile = ArgumentReader.readFileOption(args[2]);
+		
+		Parameters.reportLine("Treebank File: " + treebankFile);
+		Parameters.reportLine("Fragment File: " + fragmentFile);		
+		Parameters.reportLineFlush("Output File: " + outputFile);						
+							
+		readFragmentsFile(fragmentFile);
+		addCFGfragmentsFromTreebank(treebankFile);
+		getRootFreq();
+		calculateInsideProbs(false);					
+		printFragmentLogInsideProbRatio(outputFile);
+	}
+	
+	public static void runNew(String[] args) throws Exception {
+		
+		//File treebankFile = ArgumentReader.readFileOption(args[0]);
+		File fragmentFile = ArgumentReader.readFileOption(args[0]);		
+		File outputFile = ArgumentReader.readFileOption(args[1]);
+		
+		//Parameters.reportLine("Treebank File: " + treebankFile);
+		Parameters.reportLine("Fragment File: " + fragmentFile);		
+		Parameters.reportLineFlush("Output File: " + outputFile);						
+							
+		readFragmentsFile(fragmentFile);
+		addCFGfragmentsFromTreebank(fragmentFile);
+		getRootFreq();
+		calculateInsideProbs(true);					
+		printFragmentLogInsideProbRatioSorted(outputFile, 7, true);
+	}
+	
 	public static void main(String[] args) throws Exception {
 		/*
 		String workingDir = "/gardner0/data/TSG_MWE/Dutch/LassySmall/TreebankFrags/";
@@ -393,21 +464,9 @@ public class TSG_Frag_Inside_Prob_Ratio {
 		File smallFragFile = new File(workingDir + "frag_MWE_AM_2_10_noPos/Inside_ratio/Frags/frags_3_L_L_L.sorted_Inside_ratio.frag");
 		*/
 		
-		File treebankFile = ArgumentReader.readFileOption(args[0]);
-		File fragmentFile = ArgumentReader.readFileOption(args[1]);		
-		File outputFile = ArgumentReader.readFileOption(args[2]);		
+		//runStandard(args);
+		runNew(args);
 		
-		
-		Parameters.reportLine("Treebank File: " + treebankFile);
-		Parameters.reportLine("Fragment File: " + fragmentFile);		
-		Parameters.reportLineFlush("Output File: " + outputFile);						
-							
-		readTreeBank(treebankFile);
-		readFragmentsFile(fragmentFile);
-		addCFGfragmentsFromTreebank();
-		getRootFreq();
-		calculateInsideProbs();					
-		printFragmentLogInsideProbRatio(outputFile);
 		
 		//calculateInsideProbsPrintSorted(smallFragFile, smallFragFile);
 	}

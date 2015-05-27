@@ -16,6 +16,8 @@ import util.PrintProgress;
 import util.file.FileUtil;
 
 public class PruneTable_RatiosThreshold {
+	
+	static boolean outputStats = false;
 		
 	HashMap<IdentityArrayList<String>,TreeSet<Integer>> sourceTotIndexSet;
 	HashMap<IdentityArrayList<String>,HashMap<IdentityArrayList<String>,TreeSet<Integer>>> reversedTable;
@@ -29,7 +31,9 @@ public class PruneTable_RatiosThreshold {
 	public PruneTable_RatiosThreshold(File inputFile, String thresholdString) {		
 		this.inputFile = inputFile;
 		systemLogFile = FileUtil.changeExtension(inputFile, "prune.threshold."+thresholdString+".log");
-		outputFileStats = FileUtil.changeExtension(inputFile, "prune.threshold."+thresholdString+".stats.gz");
+		outputFileStats = outputStats ?
+				FileUtil.changeExtension(inputFile, "prune.threshold."+thresholdString+".stats.gz") :
+				null;
 		this.outputFile = FileUtil.changeExtension(inputFile, "prune.threshold."+thresholdString+".gz");
 		ratiosThreshold = Double.parseDouble(thresholdString);
 		
@@ -38,11 +42,12 @@ public class PruneTable_RatiosThreshold {
 		Parameters.logStdOutPrintln("Input File: " + inputFile);
 		Parameters.logStdOutPrintln("Ratios threshold: " + thresholdString);
 		Parameters.logStdOutPrintln("Output File: " + outputFile);
-		Parameters.logStdOutPrintln("Output File Stats: " + outputFileStats);
+		if (outputStats)
+			Parameters.logStdOutPrintln("Output File Stats: " + outputFileStats);
 		
 		reversedTable = ReverseTable.reverseTable(inputFile);
 		
-		buildSourceTotIndexSet();
+		sourceTotIndexSet = buildSourceTotIndexSet(inputFile);
 		pruneTable();
 		
 		Parameters.logStdOutPrintln("Number of selected pairs: " + selectedPairs);		
@@ -50,8 +55,8 @@ public class PruneTable_RatiosThreshold {
 		Parameters.closeLogFile();
 	}
 	
-	private void buildSourceTotIndexSet() {
-		sourceTotIndexSet = new HashMap<IdentityArrayList<String>, TreeSet<Integer>>();
+	public static HashMap<IdentityArrayList<String>, TreeSet<Integer>> buildSourceTotIndexSet(File inputFile) {
+		HashMap<IdentityArrayList<String>, TreeSet<Integer>> result = new HashMap<IdentityArrayList<String>, TreeSet<Integer>>();
 		PrintProgress pp = new PrintProgress("Building Source Index Table", 10000, 0);
 		Scanner scan = FileUtil.getGzipScanner(inputFile);
 		IdentityArrayList<String> key=null;
@@ -65,7 +70,7 @@ public class PruneTable_RatiosThreshold {
 				//2:      [of, climate] // inlcuding case of old implementation
 				//        [check, for] //  and new implementation 
 				if (key!=null) {
-					sourceTotIndexSet.put(key, indexSet);
+					result.put(key, indexSet);
 					indexSet = new TreeSet<Integer>();
 				}
 				key = ParallelSubstrings.getIdentityArrayListFromBracket(split[1]);
@@ -78,13 +83,14 @@ public class PruneTable_RatiosThreshold {
 			}
 		}
 		// last key-subtable
-		sourceTotIndexSet.put(key, indexSet);
+		result.put(key, indexSet);
 		pp.end();
+		return result;
 	}
 
 	private void pruneTable() {
 		Scanner scan = FileUtil.getGzipScanner(inputFile);
-		pwStats = FileUtil.getGzipPrintWriter(outputFileStats);
+		pwStats = outputStats ? FileUtil.getGzipPrintWriter(outputFileStats) : null;
 		pw = FileUtil.getGzipPrintWriter(outputFile);
 		
 		PrintProgress pp = new PrintProgress("Reading and pruning table", 1000, 0);
@@ -95,8 +101,9 @@ public class PruneTable_RatiosThreshold {
 			String line = scan.nextLine();
 			String[] split = line.split("\t");
 			if (split.length==1) {
-				pwStats.println(line);
 				pw.println(line);
+				if (outputStats)
+					pwStats.println(line);
 				continue; //2:
 			}				 
 			if (split.length==2) {
@@ -123,8 +130,10 @@ public class PruneTable_RatiosThreshold {
 		
 		pp.end();
 		
-		pwStats.close();
 		pw.close();
+		if (outputStats)
+			pwStats.close();
+		
 	}
 
 	private void simplify(IdentityArrayList<String> sourceKey,
@@ -134,10 +143,11 @@ public class PruneTable_RatiosThreshold {
 		
 		int souceTargetKeysCount = targetTable.size();
 				
-		pwStats.println("\t" + sourceKey +
+		if (outputStats) {
+			pwStats.println("\t" + sourceKey +
 				"\t" + "TotSourceIndexCount:" + sourceIndexSet.size() +
-				"\t" + "TotTargetKeysCount:" + souceTargetKeysCount				
-		);
+				"\t" + "TotTargetKeysCount:" + souceTargetKeysCount);
+		}
 		
 		boolean printedSource = false;
 		
@@ -166,15 +176,16 @@ public class PruneTable_RatiosThreshold {
 				selectedPairs++;
 			}
 			
-			pwStats.println("\t\t" + targetKey +
+			if (outputStats) {
+				pwStats.println("\t\t" + targetKey +
 					"\t" +  (accept ? "+" : "-") + 
 					"\t" +  Arrays.toString(ratios) +
 					"\t" +  "Ratios(target/source):" + targetIndexSetSize +
 					"\t" +  "TotTargetIndexCount:" + targetIndexSetSize +
 					"\t" +  "TargetSourceKeysCount:" + sourceTable.size() + // number of source keys mapped with targets
 					"\t" +  "SourceTargetIndexCount:" + sourceTargetIndexesSize +
-					"\t" +  "SourceTargetIndexes:" + sourceTargetIndexes
-			);		
+					"\t" +  "SourceTargetIndexes:" + sourceTargetIndexes);
+			}
 		}
 		
 	}

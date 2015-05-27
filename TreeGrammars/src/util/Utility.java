@@ -276,6 +276,22 @@ public class Utility {
 		}
 		return result;
 	}
+	
+	public static <S,T> HashMap<T, HashSet<S>> reverseHashMap(HashMap<S, HashSet<T>> table) {
+		HashMap<T, HashSet<S>> result = new HashMap<T, HashSet<S>>();
+		for(Entry<S, HashSet<T>> e : table.entrySet()) {
+			S s = e.getKey();
+			for(T t : e.getValue()) {
+				HashSet<S> set = result.get(t);
+				if (set==null) {
+					set = new HashSet<S>();
+					result.put(t, set);
+				}
+				set.add(s);
+			}
+		}
+		return result;
+	}
 
 	public static <S extends Comparable<S>, T> TreeMap<S, HashSet<T>> reverseAndSortTable(
 			HashMap<T, S> table) {
@@ -2673,12 +2689,32 @@ public class Utility {
 		}
 		return value.add(valueElement);
 	}
+	
+	public static <S, T> boolean putInHashMapTreeSet(HashMap<S, TreeSet<T>> table,
+			S key, T valueElement) {
+		TreeSet<T> value = table.get(key);
+		if (value == null) {
+			value = new TreeSet<T>();
+			table.put(key, value);
+		}
+		return value.add(valueElement);
+	}
 
 	public static <S, T> boolean putInTreeMapSet(TreeMap<S, HashSet<T>> table,
 			S key, T valueElement) {
 		HashSet<T> value = table.get(key);
 		if (value == null) {
 			value = new HashSet<T>();
+			table.put(key, value);
+		}
+		return value.add(valueElement);
+	}
+	
+	public static <S, T> boolean putInTreeMapTreeSet(TreeMap<S, TreeSet<T>> table,
+			S key, T valueElement) {
+		TreeSet<T> value = table.get(key);
+		if (value == null) {
+			value = new TreeSet<T>();
 			table.put(key, value);
 		}
 		return value.add(valueElement);
@@ -2708,6 +2744,22 @@ public class Utility {
 			return true;
 		}
 		return putInTreeMapSet(value, secondKey, valueElement);
+	}
+	
+	public static <S, T, Z> boolean putInTreeMapTreeSet(
+			AbstractMap<S, TreeMap<T, TreeSet<Z>>> table, S firstKey, T secondKey,
+			Z valueElement) {
+
+		TreeMap<T, TreeSet<Z>> value = table.get(firstKey);
+		if (value == null) {
+			value = new TreeMap<T, TreeSet<Z>>();
+			table.put(firstKey, value);
+			TreeSet<Z> set = new TreeSet<Z>();
+			set.add(valueElement);
+			value.put(secondKey, set);
+			return true;
+		}
+		return putInTreeMapTreeSet(value, secondKey, valueElement);
 	}
 
 	public static <S, T, Z> boolean putInHashMapDoubleArrayList(
@@ -2751,6 +2803,28 @@ public class Utility {
 		}
 		return set.add(value);
 	}
+	
+	
+	public static <S, T, Z> boolean putInIdentityHashMapDoubleTreeSet(
+			IdentityHashMap<S, TreeMap<T, TreeSet<Z>>> table, S firstKey,
+			T secondKey, Z value) {
+
+		TreeMap<T, TreeSet<Z>> subTable = table.get(firstKey);
+		if (subTable == null) {
+			subTable = new TreeMap<T, TreeSet<Z>>();
+			TreeSet<Z> set = new TreeSet<Z>();
+			set.add(value);
+			subTable.put(secondKey, set);
+			table.put(firstKey, subTable);
+			return true;
+		}
+		TreeSet<Z> set = subTable.get(secondKey);
+		if (set == null) {
+			set = new TreeSet<Z>();
+			subTable.put(secondKey, set);
+		}
+		return set.add(value);
+	}
 
 	public static <S, T> boolean putInHashMapArrayList(
 			HashMap<S, ArrayList<T>> table, S key, T valueElement) {
@@ -2773,6 +2847,18 @@ public class Utility {
 		}
 		return putInHashMap(mapValue, secondKey, valueElement);
 	}
+	
+	public static <S, T, Z> boolean putInHashMapTreeSet(
+			HashMap<S, HashMap<T, TreeSet<Z>>> table, S firstKey, T secondKey,
+			Z valueElement) {
+		HashMap<T, TreeSet<Z>> mapValue = table.get(firstKey);
+		if (mapValue == null) {
+			mapValue = new HashMap<T, TreeSet<Z>>();
+			table.put(firstKey, mapValue);
+		}
+		return putInHashMapTreeSet(mapValue, secondKey, valueElement);
+	}
+
 
 	public static <R, Q, S, T, Z> boolean putInMapQuadruple(
 			AbstractMap<R, HashMap<Q, HashMap<S, HashMap<T, Z>>>> table,
@@ -2892,7 +2978,7 @@ public class Utility {
 		increaseInHashMapIndex(value, secondKey, toAdd, index, size);
 	}
 
-	public static <T> boolean increaseInHashMap(HashMap<T, double[]> table,
+	public static <T> boolean increaseInHashMap(AbstractMap<T, double[]> table,
 			T key, double d) {
 		double[] value = table.get(key);
 		if (value == null) {
@@ -3715,6 +3801,23 @@ public class Utility {
 			if (!b) return false;
 		}
 		return true;
+	}
+	
+	public static boolean someButNotAllTrue(boolean[] a) {
+		boolean foundTrue = false, foundFalse = false;
+		for(boolean b : a) {
+			if (b) {
+				if (foundFalse)
+					return true;
+				foundTrue = true;
+			}
+			else {
+				if (foundTrue)
+					return true;
+				foundFalse = true;
+			}
+		}
+		return false;
 	}
 
 	public static void main(String args[]) throws FileNotFoundException {

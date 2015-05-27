@@ -885,6 +885,10 @@ public class TSNodeLabel {
 		return result;
 	}
 	
+	public boolean yieldsOnlyLexItems() {
+		return collectNonLexTerminals().isEmpty();
+	}
+	
 	private void collectNonLexTerminals(List<TSNodeLabel> nodes) {
 		if (this.isTerminal()) {
 			if (!this.isLexical) {
@@ -3295,6 +3299,32 @@ public class TSNodeLabel {
 		return commonAncestorNode;		
 	}
 	
+	public static TSNodeLabel getMinimalConnectedStructureNoClone(TSNodeLabel firstLex, TSNodeLabel secondLex) {
+		int heightA = firstLex.height();
+		int heightB = secondLex.height();
+		
+		TSNodeLabel ancestorA = firstLex;
+		TSNodeLabel ancestorB = secondLex;
+		
+		while( heightA != heightB ) {
+			if ( heightA > heightB ) {
+				ancestorA = ancestorA.parent;
+				heightA--;
+			}
+			else {
+				ancestorB = ancestorB.parent;
+				heightB--;
+			}
+		}
+		
+		while( ancestorA != ancestorB ) {
+			ancestorA = ancestorA.parent;
+			ancestorB = ancestorB.parent;
+		}
+						
+		return ancestorA;
+	}
+	
 	public static TSNodeLabel getMinimalConnectedStructure(TSNodeLabel firstLex, TSNodeLabel secondLex) {
 		int heightA = firstLex.height();
 		int heightB = secondLex.height();
@@ -3408,7 +3438,23 @@ public class TSNodeLabel {
 		}				
 	}
 	
-	
+	public static TSNodeLabel getSentenceUnit(TSNodeLabel tree, TreeSet<Integer> ci) {
+		Label sLabel = Label.getLabel("S");
+		ArrayList<TSNodeLabel> lex = tree.collectLexicalItems();
+		TSNodeLabel result = null;
+		if (ci.size()==1) {
+			result = lex.get(ci.first());
+		}
+		else {
+			TSNodeLabel first = lex.get(ci.first());
+			TSNodeLabel last = lex.get(ci.last());
+			result = getMinimalConnectedStructureNoClone(first, last);
+		}
+		while(result.label!=sLabel && result.parent!=null) {
+			result = result.parent;
+		}
+		return result;
+	}
 
 	public static void main(String[] args) throws Exception {		
 		File fileQuotes = new File("/home/sangati/Work/FBK/TSG_MWE/Dutch/LassySmall/lassytrain-nomorph.mrg.frag.filtered.lexQuotes");
@@ -3430,6 +3476,8 @@ public class TSNodeLabel {
 		*/
 		
 	}
+
+
 
 
 
