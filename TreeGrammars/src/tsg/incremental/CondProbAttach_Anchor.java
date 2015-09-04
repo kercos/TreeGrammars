@@ -161,8 +161,8 @@ public abstract class CondProbAttach_Anchor extends CondProbAttach {
 	public void addTrainEvent(SymbolicChartState a, FragFringeUnambigous b, double d) {
 		TermLabel subSite = getCondHistory(a);
 		TermLabel anchor = getAnchor(a);
-		Utility.increaseHashMapTriple(trainTable, subSite, anchor, b, new double[]{d});		
-		Utility.increaseHashMapTriple(trainTable, subSite, null, b, new double[]{d});
+		Utility.increaseHashMap(trainTable, subSite, anchor, b, new double[]{d});		
+		Utility.increaseHashMap(trainTable, subSite, null, b, new double[]{d});
 	}
 	
 	@Override

@@ -34,7 +34,7 @@ public class ConnlToUlab {
 		PrintWriter outputWriter = FileUtil.getPrintWriter(outputFile, encoding);
 		String[] linesSentence; 
 		do {
-			linesSentence = ConnlSentence.getNextConnlLinesSentence(connlScan);
+			linesSentence = ConnlX.getNextConnlLinesSentence(connlScan);
 			if (linesSentence==null) break;
 			int length = linesSentence.length;
 			String words = "";
@@ -66,7 +66,7 @@ public class ConnlToUlab {
 		PrintWriter outputWriter = FileUtil.getPrintWriter(outputFile, encoding);
 		String[] linesSentence; 
 		do {
-			linesSentence = ConnlSentence.getNextConnlLinesSentence(connlScan);
+			linesSentence = ConnlX.getNextConnlLinesSentence(connlScan);
 			if (linesSentence==null) break;
 			int length = linesSentence.length;
 			String words = "";
@@ -105,7 +105,7 @@ public class ConnlToUlab {
 		do {
 			sentenceIndex++;
 			//System.out.println(sentenceIndex);
-			linesSentence = ConnlSentence.getNextConnlLinesSentence(connlScan);
+			linesSentence = ConnlX.getNextConnlLinesSentence(connlScan);
 			if (linesSentence==null) break;
 			int length = linesSentence.length;
 			String words = "";
@@ -133,7 +133,7 @@ public class ConnlToUlab {
 	}
 	
 	public static MstSentenceUlab getNextConnlLinesSentenceInMstUlab(Scanner connlScan) {
-		String[] linesSentence = ConnlSentence.getNextConnlLinesSentence(connlScan);
+		String[] linesSentence = ConnlX.getNextConnlLinesSentence(connlScan);
 		if (linesSentence==null) return null;
 		int length = linesSentence.length;
 		String words = "";
@@ -212,19 +212,20 @@ public class ConnlToUlab {
 	
 	public static void main(String[] args) {
 		coarsePos = true;
-		String rootPath = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
-		File itDevX = new File(rootPath + "it-ud-dev.conllx");
-		File itDevUlab = new File(rootPath + "it-ud-dev.ulab");
-		File itDevLab = new File(rootPath + "it-ud-dev.lab");
-		File itTestX = new File(rootPath + "it-ud-test.conllx");
-		File itTestUlab = new File(rootPath + "it-ud-test.ulab");
-		File itTestLab = new File(rootPath + "it-ud-test.lab");
-		File itTrainX = new File(rootPath + "it-ud-train.conllx");
-		File itTrainUlab = new File(rootPath + "it-ud-train.ulab");
-		File itTrainLab = new File(rootPath + "it-ud-train.lab");
-		//convertToUlab(itDevX, itDevUlab, "UTF-8");
-		//convertToUlab(itTestX, itTestUlab, "UTF-8");
-		//convertToUlab(itTrainX, itTrainUlab, "UTF-8");
+		String rootPath = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/may_15/";
+		File itDevX = new File(rootPath + "data/it-ud-dev.conllx");
+		File itDevUlab = new File(rootPath + "mst/it-ud-dev.ulab");
+		File itDevLab = new File(rootPath + "mst/it-ud-dev.lab");
+		File itTestX = new File(rootPath + "data/it-ud-test.conllx");
+		File itTestUlab = new File(rootPath + "mst/it-ud-test.ulab");
+		File itTestLab = new File(rootPath + "mst/it-ud-test.lab");
+		File itTrainX = new File(rootPath + "data/it-ud-train.conllx");
+		File itTrainUlab = new File(rootPath + "mst/it-ud-train.ulab");
+		File itTrainLab = new File(rootPath + "mst/it-ud-train.lab");
+		
+		convertToUlab(itDevX, itDevUlab, "UTF-8");
+		convertToUlab(itTestX, itTestUlab, "UTF-8");
+		convertToUlab(itTrainX, itTrainUlab, "UTF-8");
 		convertToLab(itDevX, itDevLab, "UTF-8");
 		convertToLab(itTestX, itTestLab, "UTF-8");
 		convertToLab(itTrainX, itTrainLab, "UTF-8");

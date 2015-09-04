@@ -2,7 +2,7 @@ package tdg.reranking;
 import java.io.*;
 import java.util.*;
 
-import depParsing.depEval;
+import depParsing.DepEval;
 import pos.IsstPos;
 import pos.TanlPos;
 import pos.TutPos;
@@ -398,7 +398,7 @@ public class Reranker_EisnerCBackoff_left_extended extends Reranker_ProbModelBac
 		//ArrayList<TDNode> goldCorpus = DepCorpus.readTreebankFromFileMST(goldFile, 50, false, false);
 		//ArrayList<TDNode> testCorpus = DepCorpus.readTreebankFromFileMST(testFile, 50, false, false);
 		//depEval.MALTevalUAS(goldCorpus, testCorpus, outputFile);
-		depEval.DepEvalUlab(goldFile, testFile, outputFile);
+		DepEval.DepEvalUlab(goldFile, testFile, outputFile);
 	}
 	
 	public static void main(String args[]) {

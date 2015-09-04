@@ -54,7 +54,7 @@ public abstract class CondProbAttach_Basic extends CondProbAttach {
 	public void addTrainEvent(SymbolicChartState a, FragFringeUnambigous b, double d) {
 		TermLabel firstKey = getCondHistory(a);
 		TermLabel secondKey = b.firstTerminal();
-		Utility.increaseHashMapTriple(table, firstKey, secondKey, b, new double[] { d });
+		Utility.increaseHashMap(table, firstKey, secondKey, b, new double[] { d });
 	}
 
 	@Override

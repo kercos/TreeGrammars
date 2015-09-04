@@ -2,6 +2,7 @@ package kernels.parallel.ted;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,7 +17,8 @@ import util.file.FileUtil;
 public class CleanTED_Symbols {
 	
 	
-	static Pattern symbRE = Pattern.compile("\\&\\S+;"); //&apos;	
+	//static Pattern symbRE = Pattern.compile("\\&\\S+;"); //&apos;
+	static Pattern symbRE = Pattern.compile("\\&[^\\s,\\&]+;"); //&apos;
 	static String[] findSymb = new String[]{"&quot;","&amp;","&apos;", "&#91;", "&#93;", "&lt;", "&gt;"};
 	static char[] replaceSymb = new char[]{  '"',     '&',    '\'',     '[',     ']',    '<',    '>'};
 	static HashMap<String, Character> subSymb = new HashMap<String, Character>();
@@ -67,12 +69,11 @@ public class CleanTED_Symbols {
 				iter.remove();
 				iter.add(cleanMwe);
 			}
-		}
-		
+		}		
 	}
-
-
+	
 	public static void main(String[] args) {
+		/*
 		String workingDir = "/Users/fedja/Dropbox/ted_experiment/annotation/";
 		File enTest2010 = new File(workingDir + "IWSLT14.TED.tst2010.en-it.tok.lc.en");
 		File itTest2010 = new File(workingDir + "IWSLT14.TED.tst2010.en-it.tok.lc.it");
@@ -80,8 +81,13 @@ public class CleanTED_Symbols {
 		replaceSymbols(enTest2010);
 		replaceSymbols(itTest2010);
 		replaceSymbols(mtItTest2010);
+		*/
 		
+		String a = "fdsa fd &quot;&quot; dsafd asdf asdf as fzsd";
+		System.out.println(replaceSymbols(a));
 	}
+
+
 
 
 }

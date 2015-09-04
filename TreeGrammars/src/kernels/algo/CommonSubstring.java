@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import util.IdentityArrayList;
+import util.Utility;
 
 public class CommonSubstring {
 
@@ -133,8 +134,11 @@ public class CommonSubstring {
 
 		return resultTable;
 	}
+	
+	static boolean verbose = false;
 
-	public static HashSet<IdentityArrayList<String>> getAllMaxCommonSubstringsIdentity(String[] x, String[] y) {
+	public static HashSet<IdentityArrayList<String>> getAllMaxCommonSubstringsIdentity(
+			String[] x, String[] y) {
 
 		int M = x.length;
 		int N = y.length;
@@ -144,6 +148,7 @@ public class CommonSubstring {
 		boolean[][] eq = new boolean[M + 2][N + 2];
 
 		// compute length of LCS and all subproblems via dynamic programming
+		
 		HashSet<IdentityArrayList<String>> resultSet = new HashSet<IdentityArrayList<String>>();
 		int i = 0, j = 0;
 		int s = 0, t = 0;
@@ -160,14 +165,14 @@ public class CommonSubstring {
 			}
 		}
 		
-		/*
-		String[] xPrint = flatForPrint(x);
-		String[] yPrint = flatForPrint(y);
-		System.out.println("Eq array: ");
-		Utility.printChart(eq, yPrint, xPrint);
-		System.out.println("\nOpt array: ");
-		Utility.printChart(opt, yPrint, xPrint);
-		*/
+		if (verbose) {
+			String[] xPrint = flatForPrint(x);
+			String[] yPrint = flatForPrint(y);
+			System.out.println("Eq array: ");
+			Utility.printChart(eq, yPrint, xPrint);
+			System.out.println("\nOpt array: ");
+			Utility.printChart(opt, yPrint, xPrint);
+		}
 		
 		for (s = 1; s <= M + 1; s++) {
 			for (t = 1; t <= N + 1; t++) {
@@ -518,9 +523,10 @@ public class CommonSubstring {
 		System.out.println(match);
 		*/
 		
+		verbose = true;
 		
-		String x = "uno due tre quattro cinque";
-		String y = "due uno due due tre quattro cinque";
+		String x = "you can invest for a long time in a brand";
+		String y = "this has gone on for a long time";
 		String[] X = x.split("\\s+");
 		String[] Y = y.split("\\s+");
 		for (int i = 0; i < X.length; i++) {

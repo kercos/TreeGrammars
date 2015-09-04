@@ -1,3 +1,0 @@
-String exp = "fdsa fd safdas dfsaf ... safda sfas dfa";
-String[] expSplit = exp.replaceAll("...", " ").split("\\s+"); 
-for(String s : expSplit) {	System.out.println(s);} 

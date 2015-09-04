@@ -1,4 +1,4 @@
-package kernels.parallel;
+package kernels.parallel.ted;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
+import kernels.parallel.ParallelSubstrings;
 import settings.Parameters;
 import util.IdentityArrayList;
 import util.PrintProgress;

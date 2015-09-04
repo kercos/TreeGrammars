@@ -10,7 +10,7 @@ import java.util.Scanner;
 import util.Utility;
 import util.file.FileUtil;
 
-public class ConnlSentence {
+public class ConnlX {
 
 	/*
 	1  	 ID  	 Token counter, starting at 1 for each new sentence.
@@ -32,7 +32,7 @@ public class ConnlSentence {
 	int[] heads, pheads;
 	int length;
 	
-	public ConnlSentence(String[] form, String[] lemma, String[] cpostag, String[] postag,
+	public ConnlX(String[] form, String[] lemma, String[] cpostag, String[] postag,
 			String[] feats, int[] heads, String[] deprel, 
 			int[] phead, String[] pdeprel) {
 		this.forms = form;
@@ -47,7 +47,7 @@ public class ConnlSentence {
 		length = this.forms.length;
 	}
 	
-	public ConnlSentence(String[] lines) {
+	public ConnlX(String[] lines) {
 		length = lines.length;		
 		for(int l=0; l<length; l++) {
 			String line = lines[l];
@@ -83,12 +83,12 @@ public class ConnlSentence {
 		return lines.split("\n");
 	}
 	
-	public static ArrayList<ConnlSentence> getTreebankFromFile(File connlFile, String encoding) {
-		ArrayList<ConnlSentence> treebank = new ArrayList<ConnlSentence>();
+	public static ArrayList<ConnlX> getTreebankFromFile(File connlFile, String encoding) {
+		ArrayList<ConnlX> treebank = new ArrayList<ConnlX>();
 		Scanner connlScan = FileUtil.getScanner(connlFile, encoding);
 		String[] linesSentence; 
 		do {
-			linesSentence = ConnlSentence.getNextConnlLinesSentence(connlScan);
+			linesSentence = ConnlX.getNextConnlLinesSentence(connlScan);
 			if (linesSentence==null) break;
 			int length = linesSentence.length;
 			String words = "";
@@ -194,6 +194,43 @@ public class ConnlSentence {
 		System.out.println("Successfully processed " + sentenceCount + " sentences.");
 	}
 	
+	public static void makeFlat(File inputFile, File outputFile) throws FileNotFoundException {
+		Scanner scan = new Scanner(inputFile);
+		PrintWriter pw = new PrintWriter(outputFile);
+		boolean newSentence = true;
+		int sentenceCount = 0;
+		while(scan.hasNextLine()) {			
+			String line = scan.nextLine();
+			if (line.isEmpty()) {
+				if (!newSentence) { //very first sentence
+					pw.println();
+				}
+				newSentence = true;
+				sentenceCount++;
+				continue;
+			}
+			if (line.startsWith("#")) {
+				//pw.println(line);
+				continue;
+			}
+			String[] tabs = line.split("\t");
+			//0: index
+			//1: word
+			//2: lemma
+			//3: pos_coarse
+			//4: pos_fine
+			//5: morph
+			//6: head
+			//7: arclabel
+			//8: ?
+			//9: ?
+			pw.print(tabs[1] + " ");
+			newSentence = false;
+		}
+		pw.close();
+		System.out.println("Successfully processed " + sentenceCount + " sentences.");
+	}
+	
 	private static ArrayList<ArrayList<String>> getPos(File stanfordPosTags) throws FileNotFoundException {
 		ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();		
 		Scanner scan = new Scanner(stanfordPosTags);
@@ -224,21 +261,35 @@ public class ConnlSentence {
 	}
 	
 	public static void anonymizeUTB() throws FileNotFoundException {
-		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/may_15/data/";
 		for (String f : new String[]{"train","test","dev"}) {
 			File inputFile = new File(root + "it-ud-" + f + ".conllx");
 			
-			//File outputFile = new File(root + "it-ud-" + f + ".conllx.wphl");
-			//anonimyzeConllWPHL(inputFile, outputFile);
+			File outputFile = new File(root + "it-ud-" + f + ".wphl.conllx");
+			anonimyzeConllWPHL(inputFile, outputFile);
 			
-			File outputFile = new File(root + "it-ud-" + f + ".blind.conllx");
-			anonimyzeConll(inputFile, outputFile, null);
+			//File outputFile = new File(root + "it-ud-" + f + ".blind.conllx");
+			//anonimyzeConll(inputFile, outputFile, null);
+		}
+	}
+	
+	public static void makeFlatUTB() throws FileNotFoundException {
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/may_15/data/";
+		for (String f : new String[]{"train","test","dev"}) {
+			File inputFile = new File(root + "it-ud-" + f + ".conllx");
+			
+			File outputFile = new File(root + "it-ud-" + f + ".flat");
+			makeFlat(inputFile, outputFile);
+			
+			//File outputFile = new File(root + "it-ud-" + f + ".blind.conllx");
+			//anonimyzeConll(inputFile, outputFile, null);
 		}
 	}
 
 	
 	public static void main(String[] args) throws FileNotFoundException {
 		//goldWithTestPosUTB();
-		anonymizeUTB();
+		//anonymizeUTB();
+		makeFlatUTB();
 	}
 }

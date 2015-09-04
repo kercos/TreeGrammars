@@ -58,7 +58,7 @@ public class ConnlU {
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException {
-		String rootPath = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";
+		String rootPath = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/may_15/data/";
 		File itDevU = new File(rootPath + "it-ud-dev.conllu");
 		File itDevX = new File(rootPath + "it-ud-dev.conllx");
 		File itTestU = new File(rootPath + "it-ud-test.conllu");

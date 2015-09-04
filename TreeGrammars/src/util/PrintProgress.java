@@ -67,6 +67,7 @@ public class PrintProgress {
 		lastPrintedIndex = currentIndex;
 	}
 	
+	
 	public long currentIndex() {
 		return currentIndex;
 	}

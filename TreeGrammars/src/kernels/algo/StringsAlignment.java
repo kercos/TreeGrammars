@@ -93,6 +93,14 @@ public class StringsAlignment {
         return result;
 	}
 	
+	public static boolean hasGapSymbol(ArrayList<String> list) {
+		for(String s : list) {
+			if (s==gapSymbol)
+				return true;
+		}
+		return false;
+	}
+	
 	public ArrayList<String> getBestAlignedSubseqWithGaps() {
         // recover LCS itself and print it to standard output
 		ArrayList<String> result = new ArrayList<String>();

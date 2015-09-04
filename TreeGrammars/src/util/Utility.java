@@ -673,6 +673,22 @@ public class Utility {
 			}
 		}
 	}
+	
+	public static <T> void addAll(HashMap<T, int[]> partialTable,
+			HashMap<T, int[]> table) {
+
+		for (Entry<T, int[]> e : partialTable.entrySet()) {
+			T key = e.getKey();
+			int[] partialCount = e.getValue();
+			int[] count = table.get(key);
+			if (count == null) {
+				count = new int[] { partialCount[0] };
+				table.put(key, count);
+			} else {
+				count[0] += partialCount[0];
+			}
+		}
+	}
 
 	/**
 	 * Given two Hashtable of type Object-->Integer[2], the method adds the
@@ -2955,6 +2971,26 @@ public class Utility {
 		value[0]++;
 		return false;
 	}
+	
+	public static <T,S> boolean increaseInHashMap(AbstractMap<T, HashMap<S, int[]>> table, T key1, S key2) {
+		HashMap<S, int[]> subtable = table.get(key1);
+		if (subtable == null) {
+			subtable = new HashMap<S, int[]>();
+			table.put(key1, subtable);
+			return increaseInHashMap(subtable, key2); //always true
+		}
+		return increaseInHashMap(subtable, key2);
+	}
+	
+	public static <T,S,Z> boolean increaseInHashMap(AbstractMap<T, HashMap<S, HashMap<Z, int[]>>> table, T key1, S key2, Z key3) {
+		HashMap<S, HashMap<Z, int[]>> subtable = table.get(key1);
+		if (subtable == null) {
+			subtable = new HashMap<S, HashMap<Z,int[]>>();
+			table.put(key1, subtable);
+			return increaseInHashMap(subtable, key2, key3); //always true
+		}
+		return increaseInHashMap(subtable, key2, key3);
+	}
 
 	public static <T> int[] increaseInHashMapIndex(HashMap<T, int[]> result,
 			T firstKey, int toAdd, int index, int size) {
@@ -3212,7 +3248,7 @@ public class Utility {
 		}
 	}
 
-	public static <S, T, Z> void increaseHashMapTriple(
+	public static <S, T, Z> void increaseHashMap(
 			HashMap<S, HashMap<T, HashMap<Z, double[]>>> target, S firstKey,
 			T secondKey, Z thirdKey, double[] value) {
 
@@ -3274,6 +3310,15 @@ public class Utility {
 			for (int i = 0; i < toAdd.length; i++) {
 				value[i] = toAdd[i];
 			}
+		}
+		return false;
+	}
+	
+	public static <T> boolean maximizeInHashMap(HashMap<T, Double> table, T key, Double v) {
+		Double value = table.get(key);
+		if (value == null || v > value) {
+			table.put(key, v);
+			return true;
 		}
 		return false;
 	}
@@ -3743,7 +3788,7 @@ public class Utility {
 		return entropy;
 	}
 
-	public static <T> int totalSumValues(HashMap<T, int[]> table) {
+	public static <T> int totalSumValues(AbstractMap<T, int[]> table) {
 		int result = 0;
 		for (int[] v : table.values()) {
 			result += v[0];
@@ -3803,6 +3848,13 @@ public class Utility {
 		return true;
 	}
 	
+	public static boolean someTrue(boolean[] a) {
+		for(boolean b : a) {
+			if (b) return true;
+		}
+		return false;
+	}
+	
 	public static boolean someButNotAllTrue(boolean[] a) {
 		boolean foundTrue = false, foundFalse = false;
 		for(boolean b : a) {
@@ -3818,6 +3870,20 @@ public class Utility {
 			}
 		}
 		return false;
+	}
+	
+	public static <S> String toStringFlat(AbstractMap<S, int[]> lemmaTable) {
+		StringBuilder sb = new StringBuilder();
+		sb.append('{');
+		Iterator<Entry<S, int[]>> iter = lemmaTable.entrySet().iterator();
+		while(iter.hasNext()) {
+			Entry<S, int[]> e = iter.next();
+			sb.append(e.getKey().toString()).append(' ').append(e.getValue()[0]);
+			if (iter.hasNext())
+				sb.append(", ");
+		}
+		sb.append('}');
+		return sb.toString();
 	}
 
 	public static void main(String args[]) throws FileNotFoundException {
@@ -3846,6 +3912,8 @@ public class Utility {
 		*/
 		System.out.println(getDateTime());
 	}
+
+
 
 	
 

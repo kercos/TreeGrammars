@@ -15,7 +15,7 @@ public class CondProbAttach_Basic_Backward extends CondProbAttach_Basic {
 		TermLabel firstKey = b.root;
 		TermLabel secondKey = b.firstTerminal();		
 		assert a.peekAfterDot()==firstKey;
-		Utility.increaseHashMapTriple(table, firstKey, secondKey, b, new double[]{d});
+		Utility.increaseHashMap(table, firstKey, secondKey, b, new double[]{d});
 		
 	}
 

@@ -70,7 +70,7 @@ public class MST {
 		ArrayList<TDNode> wsj_22_parseed = 
 			DepCorpus.readTreebankFromFileMST(parsedFile, Parameters.lengthLimitTest, false, true);
 		File scoreFile = new File(Parameters.outputPath + "evalDep_UAS.txt");
-		depEval.UASeval(wsj_22_parseed, wsj_22, scoreFile);
+		DepEval.UASeval(wsj_22_parseed, wsj_22, scoreFile);
 
 
 	}

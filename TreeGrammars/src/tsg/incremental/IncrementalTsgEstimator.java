@@ -775,12 +775,12 @@ public class IncrementalTsgEstimator extends Thread {
 				TSNodeLabel frag = cc.firstLexFringeFragMapping.get(ff);
 				Label root = frag.label;
 				Label lex = ff.firstTerminal().label;
-				Utility.increaseHashMapTriple(cs.isStarred ? initFragmentsNewCounts : firstLexFragmentsNewCounts, lex, root, frag, prob);
+				Utility.increaseHashMap(cs.isStarred ? initFragmentsNewCounts : firstLexFragmentsNewCounts, lex, root, frag, prob);
 			} else {
 				TSNodeLabel frag = cc.firstSubFringeFragMapping.get(ff);
 				Label firstSub = ff.firstTerminal().label;
 				Label lex = ff.secondTerminal().label;
-				Utility.increaseHashMapTriple(firstSubFragmentsNewCounts, lex, firstSub, frag, prob);
+				Utility.increaseHashMap(firstSubFragmentsNewCounts, lex, firstSub, frag, prob);
 			}
 		}
 

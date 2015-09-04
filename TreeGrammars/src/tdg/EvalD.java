@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import depParsing.depEval;
+import depParsing.DepEval;
 
 import tdg.corpora.DepCorpus;
 
@@ -33,7 +33,7 @@ public class EvalD {
 	public static void main(String[] args) {
 		File gold = new File("/scratch/fsangati/RESULTS/MST/COLLINS99/tr02-21_MST_0.2/MST.22.gold.ulab");
 		File test = new File("/scratch/fsangati/RESULTS/MST/COLLINS99/tr02-21_MST_0.2/MST.22.parsed.ulab");
-		depEval.MSTevalUAS(test, gold);
+		DepEval.MSTevalUAS(test, gold);
 		//depEval.MSTevalUAS(new File(args[0]), new File(args[1]));
 	}
 	

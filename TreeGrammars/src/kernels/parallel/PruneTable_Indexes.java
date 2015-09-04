@@ -7,10 +7,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import kernels.parallel.ted.CleanTED_Symbols;
 import settings.Parameters;
 import util.ArgumentReader;
 import util.IdentityArrayList;
@@ -23,6 +26,10 @@ public class PruneTable_Indexes {
 	HashMap<IdentityArrayList<String>, 
 		HashMap<IdentityArrayList<String>, TreeSet<Integer>>> sourceTargetTable, targetSourceTable;
 	
+	HashMap<IdentityArrayList<String>, Double> rankedSource;
+	HashMap<IdentityArrayList<String>, IdentityArrayList<String>> bestRankedSourceTarget;
+	HashMap<IdentityArrayList<String>, Integer> bestRankedSourceSize;
+	
 	
 	public PruneTable_Indexes(File inputTableFile, int first, int last) throws FileNotFoundException {
 		
@@ -30,6 +37,7 @@ public class PruneTable_Indexes {
 		
 		String suffix = "_" + first + "_" + last;
 		File outputTableFile =  FileUtil.changeExtension(inputTableFile, "prune.indexes" + suffix + ".gz");;
+		File outputRankedSourceFile =  FileUtil.changeExtension(inputTableFile, "prune.indexes" + suffix + ".ranked.source.txt");;
 		File systemLogFile = FileUtil.changeExtension(inputTableFile, "prune.indexes" + suffix + ".log");
 		//this.alignMethod = alignMethod;		
 
@@ -37,6 +45,7 @@ public class PruneTable_Indexes {
 		Parameters.logStdOutPrintln("Split Table By indexes");
 		Parameters.logStdOutPrintln("Input Table File: " + inputTableFile);
 		Parameters.logStdOutPrintln("Output Table File: " + outputTableFile);
+		Parameters.logStdOutPrintln("Ranked Sourced File: " + outputRankedSourceFile);
 		Parameters.logStdOutPrintln("First index: " + first);
 		Parameters.logStdOutPrintln("Last index: " + last);
 
@@ -45,6 +54,9 @@ public class PruneTable_Indexes {
 		
 		sourceTargetTable = ParallelSubstrings.readTableFromFile(inputTableFile);
 		targetSourceTable = ReverseTable.reverseTable(inputTableFile);
+		rankedSource = new HashMap<IdentityArrayList<String>, Double>();
+		bestRankedSourceTarget = new HashMap<IdentityArrayList<String>, IdentityArrayList<String>>();
+		bestRankedSourceSize = new HashMap<IdentityArrayList<String>, Integer>();
 		
 		Scanner scan = FileUtil.getGzipScanner(inputTableFile);
 		PrintWriter pw = FileUtil.getGzipPrintWriter(outputTableFile);
@@ -75,6 +87,7 @@ public class PruneTable_Indexes {
 			for(int i : indexes) {
 				valueSet.add(i-first+1);
 			}
+			//SELECTION PROCESS
 			valueSet = new TreeSet<Integer>(valueSet.subSet(1, true,totalElements, true)); //1-based
 			if (!valueSet.isEmpty()) {
 				if (!printedPhraseSource) {
@@ -84,35 +97,65 @@ public class PruneTable_Indexes {
 				}
 				selectedPairsIndexes[1] += valueSet.size();
 				double score = getScore(sourcePhrase, targetPhrase);
-				pw.println("\t\t" + targetPhrase + "\t" + valueSet + "\t" + score);				
+				pw.println("\t\t" + targetPhrase + "\t" + valueSet + "\t" + score);
+				if (Utility.maximizeInHashMap(rankedSource, sourcePhrase, score)) {
+					bestRankedSourceTarget.put(sourcePhrase, targetPhrase);
+					bestRankedSourceSize.put(sourcePhrase, indexes.length);
+				}
+				//rankedSource
 			}
 		}
 		
 		pp.end();
 		pw.close();
 		scan.close();
+		
+		pw = new PrintWriter(outputRankedSourceFile);
+		TreeMap<Double, HashSet<IdentityArrayList<String>>> rankedSourceReversed 
+			= Utility.reverseAndSortTable(rankedSource);
+		for(Entry<Double, HashSet<IdentityArrayList<String>>> e : rankedSourceReversed.descendingMap().entrySet()) {
+			Double score = e.getKey();
+			for(IdentityArrayList<String> sourceMwe : e.getValue()) {
+				IdentityArrayList<String> targetMwe = bestRankedSourceTarget.get(sourceMwe);
+				int size = bestRankedSourceSize.get(sourceMwe);
+				CleanTED_Symbols.cleanIdentityArray(sourceMwe);
+				CleanTED_Symbols.cleanIdentityArray(targetMwe);
+				pw.println(sourceMwe.toString(' ') + "\t" + targetMwe.toString(' ') + "\t" + score + "\t" + size);
+			}
+		}
+		pw.close();
+		
 		Parameters.logStdOutPrintln("Total pairs/indexes " + Arrays.toString(totalPairsIndexes));
 		Parameters.logStdOutPrintln("Selected pairs/indexes " + Arrays.toString(selectedPairsIndexes));		
+		Parameters.logStdOutPrintln("Printed ranked source " + rankedSource.size());
 		
 		Parameters.closeLogFile();
 	}
 	
 	private double getScore(IdentityArrayList<String> sourcePhrase, IdentityArrayList<String> targetPhrase) {				
-		HashMap<IdentityArrayList<String>, TreeSet<Integer>> targetSubTable = sourceTargetTable.get(sourcePhrase);
-		HashMap<IdentityArrayList<String>, TreeSet<Integer>> sourceSubTable = targetSourceTable.get(targetPhrase);
+		HashMap<IdentityArrayList<String>, TreeSet<Integer>> sourceSubTable = 
+				sourceTargetTable.get(sourcePhrase);
+		HashMap<IdentityArrayList<String>, TreeSet<Integer>> targetSubTable = 
+				targetSourceTable.get(targetPhrase);
+		
+		/*
 		TreeSet<Integer> table = targetSubTable.get(targetPhrase);
+		
 		if (table==null) {
 			System.out.println(sourcePhrase);
 			System.out.println(targetPhrase);
 			System.out.println(targetSubTable);
 			System.out.println(sourceSubTable);
 		}
-		double sourceTargetIndexesSize = targetSubTable.get(targetPhrase).size();
-		int sourceIndexSetSize = ParallelSubstrings.getAllIndexes(targetSubTable).size();
-		int targetIndexSetSize = ParallelSubstrings.getAllIndexes(sourceSubTable).size();
-		double ratioOnTarget = sourceTargetIndexesSize/targetIndexSetSize;
-		double ratioOnSource = sourceTargetIndexesSize/sourceIndexSetSize;
-		return ratioOnTarget*ratioOnSource;
+		*/
+		
+		double sourceTargetIndexesSize = sourceSubTable.get(targetPhrase).size();
+		int sourceIndexSetSize = ParallelSubstrings.getAllIndexes(sourceSubTable).size();
+		int targetIndexSetSize = ParallelSubstrings.getAllIndexes(targetSubTable).size();
+		double probTgivenS = sourceTargetIndexesSize/targetIndexSetSize; //P(T|S)
+		double probSgivenT = sourceTargetIndexesSize/sourceIndexSetSize; //P(S|T)
+		//return probTgivenS*probSgivenT;
+		return probTgivenS;
 	}
 
 	static void getIndexes(File bigGzFile, File smallGzFile) throws FileNotFoundException {

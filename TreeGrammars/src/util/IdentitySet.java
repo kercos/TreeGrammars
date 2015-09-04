@@ -13,6 +13,10 @@ public class IdentitySet <T> implements Set<T> {
 	
 	ArrayList<T> set;
 
+	public IdentitySet() {
+		this.set = new ArrayList<T>();
+	}
+	
 	public IdentitySet(Collection<? extends T> c) {
 		this.set = new ArrayList<T>(c);
 	}

@@ -16,7 +16,7 @@ import util.PrintProgress;
 import util.Utility;
 import util.file.FileUtil;
 
-public class PruneTable_Align {
+public class PruneTable_Align_New {
 	
 	File systemLogFile;
 	File inputTableFile;
@@ -27,12 +27,12 @@ public class PruneTable_Align {
 	// every word index in source is mapped to all aligned word indexes in target sentence
 	Vector<String[]> sourceSentences, targetSentences;
 
-	public PruneTable_Align(File sourceFile, File targetFile,
+	public PruneTable_Align_New(File sourceFile, File targetFile,
 			File alignFile, File inputTableFile) throws FileNotFoundException {
 		
 		this.inputTableFile = inputTableFile;
-		outputFile =  FileUtil.changeExtension(inputTableFile, "prune.align.gz");;
-		systemLogFile = FileUtil.changeExtension(inputTableFile, "prune.align.log");
+		outputFile =  FileUtil.changeExtension(inputTableFile, "prune.align_new.gz");;
+		systemLogFile = FileUtil.changeExtension(inputTableFile, "prune.align_new.log");
 		//this.alignMethod = alignMethod;		
 
 		pairsIndexes = new int[2];
@@ -225,10 +225,8 @@ public class PruneTable_Align {
 			if (targetPeerIndexes != null) {								
 				if (targetPeerIndexes.size()==1) {
 					Integer peer = targetPeerIndexes.iterator().next();
-					if (reversedAlignTable.get(peer).size()==1) {
+					if (peer>=t_start && peer<t_end && reversedAlignTable.get(peer).size()==1) {
 						return false; //1-1 relations
-						// maybe we should check if peer is in between t_start and t_end
-						// are we checking the way around?
 					}
 				}
 				for (int i : targetPeerIndexes) {
@@ -241,8 +239,7 @@ public class PruneTable_Align {
 			sourcePos++;
 		}	
 		
-		return Utility.allTrue(sCovered) && Utility.allTrue(tCovered);
-		// try to change on someTrue saomeTrue (paper version)
+		return Utility.someTrue(sCovered) && Utility.someTrue(tCovered);
 		
 	}
 	
@@ -291,7 +288,7 @@ public class PruneTable_Align {
 		File alignFile = new File(args[2]);
 		File inputTable = new File(args[3]);
 		
-		new PruneTable_Align(sourceFile, targetFile, alignFile, inputTable);
+		new PruneTable_Align_New(sourceFile, targetFile, alignFile, inputTable);
 		
 		
 		/*

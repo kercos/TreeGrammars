@@ -151,7 +151,7 @@ public class ConllToStanford {
 	}
 	
 	public static void convertUTBpos() throws FileNotFoundException {
-		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";		
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/may_15/data/";		
 		for (String f : new String[]{"train","dev","test"}) {
 			File inputFile = new File(root + "it-ud-" + f + ".conllx");
 			File outputFileCoarse = new File(root + "it-ud-" + f + ".stanfordCoarsePoS.gold");
@@ -162,7 +162,7 @@ public class ConllToStanford {
 	}
 	
 	public static void convertUTBflat() throws FileNotFoundException {
-		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/";		
+		String root = "/Volumes/HardDisk/Scratch/CORPORA/UniversalTreebank/langs/it/may_15/data/";		
 		for (String f : new String[]{"train","dev","test"}) {
 			File inputFile = new File(root + "it-ud-" + f + ".conllx");
 			File outputFile = new File(root + "it-ud-" + f + ".flat");
@@ -183,9 +183,10 @@ public class ConllToStanford {
 	
 	public static void main(String[] args) throws FileNotFoundException {
 		//convertISDT();
-		//convertUTBpos();
+		convertUTBpos();
 		//convertUTBflat();
 		//goldWithTestPosUTB();
+		
 	}
 	
 }

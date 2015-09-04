@@ -8,6 +8,7 @@ import java.util.ListIterator;
 
 import util.IdentityArrayList;
 import util.Pair;
+import util.Utility;
 
 public class AllStringSubsequencesSet {
 
@@ -215,6 +216,8 @@ public class AllStringSubsequencesSet {
 		}
 	}
 	
+	static boolean verbose = false;
+	
 	public static HashSet<IdentityArrayList<String>> getAllMaxCommonSubstringsIdentity(
 			String[] a1, String[] a2, int minLength) {
 		AllStringSubsequencesSet S2 = new AllStringSubsequencesSet(a1,a2);
@@ -224,22 +227,54 @@ public class AllStringSubsequencesSet {
 			if (iter.next().size()<minLength)
 				iter.remove();
 		}
-		/*
-		if (!result.isEmpty()) {
-			System.out.println(Arrays.toString(a1));
-			System.out.println(Arrays.toString(a2));
-			System.out.println(result);
-			System.out.println("-------------------------------");
+		
+		if (verbose) {
+			String[] xPrint = flatForPrint(a1);
+			String[] yPrint = flatForPrint(a2);
+			System.out.println("Eq array: ");
+			Utility.printChart(S2.equalMatrix, yPrint, xPrint);
+			System.out.println("\nOpt array: ");
+			Utility.printChart(S2.subSequencesSizeMatrix, yPrint, xPrint);
 		}
-		*/
+
+		
+		
+		return result;
+	}
+	
+	public static String[] flatForPrint(String[] x) {
+		int l = x.length;
+		String[] result = new String[l+2];
+		result[0] = "";
+		for(int i=0; i<l; i++) {
+			result[i+1] = x[i]; 
+		}
+		result[l+1] = "";
 		return result;
 	}
 	
 	public static void main(String[] args) {
 
-		String[] a1 = new String[]{"A","B","C","D","E","F"};		
-		String[] a2 = new String[]{"A","B","Z","C","D","F","A","B","C","E"};
+		//String[] a1 = new String[]{"A","B","C","D","E","F"};		
+		//String[] a2 = new String[]{"A","B","Z","C","D","F","A","B","C","E"};
+		
+		verbose = true;
+		
+		String[] a1 = new String("you don 't even take the name of the country for granted").split("\\s");
+		String[] a2 = new String("we can take it completely for granted").split("\\s");
+		
+		for (int i = 0; i < a1.length; i++) {
+			a1[i] = a1[i].intern();
+		}
+		for (int i = 0; i < a2.length; i++) {
+			a2[i] = a2[i].intern();
+		}
+		
+		HashSet<IdentityArrayList<String>> set = getAllMaxCommonSubstringsIdentity(a1, a2, 2);
+		System.out.println(set);
+		
 			
+		/*
 		AllStringSubsequencesSet S2 = new AllStringSubsequencesSet(a1,a2);
 		HashSet<IdentityArrayList<String>> allS2 = S2.getAllSubsequences();
 		
@@ -251,6 +286,7 @@ public class AllStringSubsequencesSet {
 		for(IdentityArrayList<String> sub : allS2) {
 			System.out.println(sub);
 		}
+		*/
 		
 	}
 	

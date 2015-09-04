@@ -15,7 +15,7 @@ public class CondProbAttach_Basic_Forward extends CondProbAttach_Basic {
 		TermLabel firstKey = b.firstTerminal();
 		TermLabel secondKey = b.secondTerminal();		
 		assert a.root()==firstKey;
-		Utility.increaseHashMapTriple(table, firstKey, secondKey, b, new double[]{d});		
+		Utility.increaseHashMap(table, firstKey, secondKey, b, new double[]{d});		
 	}
 
 	@Override

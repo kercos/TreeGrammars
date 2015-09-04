@@ -55,7 +55,7 @@ public class Malt {
 		File testFile =  new File(Parameters.outputPath + "malt.22.out.tab");
 		File goldFile = new File(Parameters.outputPath + "malt.22.gold.tab");
 		File outputFile = new File(Parameters.outputPath + "UASEval.txt");
-		depEval.MALTevalUAS(testFile, goldFile, outputFile);
+		DepEval.MALTevalUAS(testFile, goldFile, outputFile);
 	}
 	
 	public static void main(String args[]) {

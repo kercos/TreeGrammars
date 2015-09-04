@@ -19,6 +19,7 @@ import kernels.algo.AllOrderedStringExactSubsequences;
 import kernels.algo.AllStringSubsequencesSet;
 import kernels.algo.CommonSubstring;
 import kernels.algo.StringsAlignment;
+import kernels.parallel.ted.CleanTED_Symbols;
 import settings.Parameters;
 import util.ArgumentReader;
 import util.IdentityArrayList;
@@ -251,8 +252,12 @@ public class ParallelSubstrings {
 		}
 		
 	}
-
+	
 	public static ArrayList<String[]> getInternedSentences(File inputFile) throws FileNotFoundException {
+		return getInternedSentences(inputFile, false);
+	}
+
+	public static ArrayList<String[]> getInternedSentences(File inputFile, boolean replaceSymbols) throws FileNotFoundException {
 		ArrayList<String[]> result = new ArrayList<String[]>();
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(inputFile, "utf-8");
@@ -260,20 +265,28 @@ public class ParallelSubstrings {
 			String line = scanner.nextLine().trim();
 			if (convertToLowerCase) 
 				line = line.toLowerCase();
-			String[] lineWords = getInternedWordArrayFromSentence(line);
+			String[] lineWords = getInternedWordArrayFromSentence(line, replaceSymbols);
 			result.add(lineWords);
 		}		
 		return result;
 	}
-
+	
 	public static String[] getInternedWordArrayFromSentence(String line) {
+		return getInternedWordArrayFromSentence(line,false);
+	}
+	
+	public static String[] getInternedWordArrayFromSentence(String line, boolean replaceSymbols) {
 		String[] lineWords = line.trim().split("\\s+");
 		for(int i=0; i<lineWords.length; i++) {
-			lineWords[i] = lineWords[i].intern();	
+			String w = replaceSymbols ? 
+					CleanTED_Symbols.replaceSymbols(lineWords[i]) : lineWords[i];	
+			lineWords[i] = w.intern();	
 			// INTERNING ALL WORDS IN FILES
 		}
 		return lineWords;
 	}
+
+
 
 	
 	
@@ -601,6 +614,11 @@ public class ParallelSubstrings {
 	
 	public static HashMap<IdentityArrayList<String>,HashMap<IdentityArrayList<String>,TreeSet<Integer>>> 
 		readTableFromFile(File inputFile) {
+		return readTableFromFile(inputFile, false);
+	}
+	
+	public static HashMap<IdentityArrayList<String>,HashMap<IdentityArrayList<String>,TreeSet<Integer>>> 
+		readTableFromFile(File inputFile, boolean cleanSymbols) {
 		
 		HashMap<IdentityArrayList<String>,HashMap<IdentityArrayList<String>,TreeSet<Integer>>> result = 
 				new HashMap<IdentityArrayList<String>,HashMap<IdentityArrayList<String>,TreeSet<Integer>>> ();
@@ -618,7 +636,7 @@ public class ParallelSubstrings {
 			if (split.length==2) {
 				//2:      [of, climate] // inlcuding case of old implementation
 				//        [check, for] // new implementation only has these lines
-				key =  getIdentityArrayListFromBracket(split[1]);
+				key =  getIdentityArrayListFromBracket(split[1], cleanSymbols);
 				subTable = result.get(key);
 				if (subTable==null) {
 					subTable = new HashMap<IdentityArrayList<String>, TreeSet<Integer>>();
@@ -628,7 +646,7 @@ public class ParallelSubstrings {
 			}
 			// split.length==4 //\t\t[che, per, la]  [23687, 34596, 186687]
 			pp.next();
-			value = getIdentityArrayListFromBracket(split[2]);
+			value = getIdentityArrayListFromBracket(split[2], cleanSymbols);
 			indexes = getIndexeArrayFromParenthesis(split[3]);			
 			TreeSet<Integer> valueSet = new TreeSet<Integer>();					
 			subTable.put(value, valueSet);
@@ -695,6 +713,15 @@ public class ParallelSubstrings {
 		string = string.substring(1, string.length()-1);		
 		return getIdentityArrayList(string, "\\, ");
 	}
+	
+	public static IdentityArrayList<String> getIdentityArrayListFromBracket(String string, boolean cleanSymbols) {
+		string = string.substring(1, string.length()-1);		
+		IdentityArrayList<String> result = getIdentityArrayList(string, "\\, ");
+		if (cleanSymbols)
+			CleanTED_Symbols.cleanIdentityArray(result);
+		return result;
+	}
+
 	
 	public static IdentityArrayList<String> getIdentityArrayList(String string, String splitExp) {
 		String[] split = string.split(splitExp);
